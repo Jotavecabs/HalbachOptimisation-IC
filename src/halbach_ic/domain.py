@@ -53,6 +53,19 @@ class EvaluationGrid:
             raise ValueError(f"simetria desconhecida: {symmetry!r}")
         return mask
 
+    def weights(self, symmetry: Symmetry) -> NDArray[np.float64]:
+        """Peso de cada ponto de ``points(symmetry)`` para médias equivalentes à esfera inteira.
+
+        No octante, um ponto com k coordenadas nulas representa ``2**(3-k)``
+        pontos da esfera (ele mesmo e suas imagens espelhadas). Sem esse peso,
+        os pontos sobre os planos de simetria contariam demais na média.
+        """
+        points = self.points(symmetry)
+        if symmetry == "full":
+            return np.ones(points.shape[0])
+        n_zero = np.sum(np.abs(points) < _TOL * max(self.dsv_radius, 1.0), axis=1)
+        return 2.0 ** (3 - n_zero)
+
     def points(self, symmetry: Symmetry) -> NDArray[np.float64]:
         """Pontos avaliados, forma (M, 3) [m], na ordem de ``mask(symmetry)``."""
         x, y, z = self.coordinates()

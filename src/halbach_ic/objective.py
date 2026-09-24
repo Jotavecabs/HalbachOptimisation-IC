@@ -35,6 +35,8 @@ class FieldTable:
     """Pontos de avaliação [m], forma (M, 3)."""
     field_direction: float
     """Direção de B0 usada na projeção [rad]."""
+    weights: NDArray[np.float64]
+    """Peso de cada ponto na média, forma (M,) (ver ``EvaluationGrid.weights``)."""
 
     @property
     def n_points(self) -> int:
@@ -51,6 +53,7 @@ def build_field_table(
     points: NDArray[np.float64],
     backend: FieldBackend,
     field_direction: float,
+    weights: NDArray[np.float64] | None = None,
 ) -> FieldTable:
     """Calcula a contribuição de cada opção de anel em cada slot.
 
@@ -59,6 +62,7 @@ def build_field_table(
         points: pontos de avaliação, forma (M, 3) [m].
         backend: modelo de campo.
         field_direction: direção de B0 [rad]; a tabela guarda a projeção nela.
+        weights: peso de cada ponto na média (padrão: todos 1).
     """
     unit = field_unit_vector(field_direction)
     values = np.empty((points.shape[0], space.n_slots, space.n_options), dtype=np.float32)
@@ -66,12 +70,21 @@ def build_field_table(
         for o, ring in enumerate(space.options):
             magnets = MagnetArray.concatenate([ring.magnets(z) for z in slot])
             values[:, s, o] = backend.field(points, magnets) @ unit
-    return FieldTable(values=values, points=points, field_direction=field_direction)
+    if weights is None:
+        weights = np.ones(points.shape[0])
+    if weights.shape != (points.shape[0],):
+        raise ValueError("weights deve ter um valor por ponto")
+    return FieldTable(values=values, points=points, field_direction=field_direction, weights=weights)
 
 
-def homogeneity_ppm(values: NDArray[np.float64]) -> float:
-    """Homogeneidade pico a pico relativa à média, em ppm: ``(max - min) / |média| * 1e6``."""
-    mean = float(np.mean(values))
+def homogeneity_ppm(values: NDArray[np.float64], weights: NDArray[np.float64] | None = None) -> float:
+    """Homogeneidade pico a pico relativa à média, em ppm: ``(max - min) / |média| * 1e6``.
+
+    Args:
+        values: campo nos pontos.
+        weights: pesos da média (``None`` = média simples).
+    """
+    mean = float(np.average(values, weights=weights))
     if mean == 0.0:
         return math.inf
     return float((np.max(values) - np.min(values)) / abs(mean) * 1e6)
@@ -116,10 +129,10 @@ class Objective:
         """Avalia uma solução (índice da opção escolhida em cada slot)."""
         genes = np.asarray(genes)
         field = self.table.total_field(genes)
-        mean = float(np.mean(field))
+        mean = float(np.average(field, weights=self.table.weights))
         mass = float(self.mass_table[np.arange(genes.size), genes].sum())
         field_excess = max(0.0, abs(mean - self.target_field) - self.field_tolerance) / self.field_tolerance
         mass_excess = max(0.0, mass - self.max_mass) / self.max_mass
         return Evaluation(
-            ppm=homogeneity_ppm(field), mean_field=mean, mass=mass, violation=field_excess + mass_excess
+            ppm=homogeneity_ppm(field, self.table.weights), mean_field=mean, mass=mass, violation=field_excess + mass_excess
         )

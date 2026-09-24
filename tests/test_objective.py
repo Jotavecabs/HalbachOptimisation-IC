@@ -64,3 +64,17 @@ def test_constraint_violation(space) -> None:
     assert far.violation == pytest.approx(2.0, rel=1e-6)
     heavy = objective(mean, 1e-3, mass / 2).evaluate(genes)
     assert heavy.violation == pytest.approx(1.0)
+
+
+def test_octant_with_weights_equals_full_sphere(space) -> None:
+    """Item 6: com pesos de multiplicidade, o octante reproduz a esfera inteira."""
+    grid = make_grid(0.1, 0.01)
+    full = build_field_table(space, grid.points("full"), DipoleBackend(), -math.pi / 2, grid.weights("full"))
+    octant = build_field_table(space, grid.points("octant"), DipoleBackend(), -math.pi / 2, grid.weights("octant"))
+    assert grid.weights("octant").sum() == pytest.approx(grid.mask("full").sum())
+    for genes in [(0, 0, 0), (2, 1, 0), (1, 2, 2)]:
+        f, o = full.total_field(genes), octant.total_field(genes)
+        assert np.average(o, weights=octant.weights) == pytest.approx(np.mean(f), rel=1e-9)
+        assert homogeneity_ppm(o, octant.weights) == pytest.approx(homogeneity_ppm(f), rel=1e-5)
+        # sem pesos (como no original) a média fica enviesada
+        assert np.mean(o) != pytest.approx(np.mean(f), rel=1e-9)

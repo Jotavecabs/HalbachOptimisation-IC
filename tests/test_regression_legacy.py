@@ -21,7 +21,7 @@ import pytest
 from halbach_ic.domain import make_grid
 from halbach_ic.field_model import DipoleBackend
 from halbach_ic.geometry import DesignSpace, HalbachRing, MagnetSpec, symmetric_slots
-from halbach_ic.objective import Objective, build_field_table
+from halbach_ic.objective import build_field_table, homogeneity_ppm
 
 MAGNET = MagnetSpec(size=0.012, remanence=1.3, density=7500.0)
 LEGACY_RADII = np.array([148, 151, 154, 156, 159, 162, 165, 168, 171, 174, 177, 180, 183, 186, 189, 192, 195, 198, 201]) * 1e-3
@@ -109,11 +109,10 @@ def test_fitness_matches_legacy(legacy) -> None:
     # --- mesma instância no código novo ---
     space = DesignSpace(slots=slots, options=tuple(legacy_ring(i, math.pi) for i in option_idx))
     table = build_field_table(space, grid.points("octant"), DipoleBackend(), field_direction=0.0)
-    objective = Objective(table=table, mass_table=space.mass_table(), target_field=0.05,
-                          field_tolerance=1.0, max_mass=1e9)
 
     assert table.n_points == legacy_table.shape[0]
     rng = np.random.default_rng(0)
     for genes in [np.zeros(len(slots), int), np.full(len(slots), 2), *rng.integers(0, 3, (5, len(slots)))]:
         legacy_ppm = optimisation.fieldError(list(genes))[0]
-        assert objective.evaluate(genes).ppm == pytest.approx(legacy_ppm, rel=1e-4)
+        # o original usa média simples no octante (sem pesos), então compara assim
+        assert homogeneity_ppm(table.total_field(genes)) == pytest.approx(legacy_ppm, rel=1e-4)
