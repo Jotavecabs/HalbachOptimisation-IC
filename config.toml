@@ -50,6 +50,10 @@ max_magnet_mass_kg = 40.0     # massa total máxima dos ímãs
 [defaults.model]
 backend = "cuboid"            # "cuboid" (campo exato do cubo, magpylib) ou "dipole" (rápido, aproximado)
 
+[defaults.performance]
+n_workers = 0                 # processos em paralelo; 0 = todos os núcleos, 1 = sem paralelismo
+eval_chunk_mb = 64            # memória de trabalho por bloco de avaliação (por processo)
+
 [defaults.ga]
 population = 10000
 generations = 100

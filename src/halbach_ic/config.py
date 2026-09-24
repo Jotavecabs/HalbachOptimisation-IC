@@ -113,6 +113,16 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class PerformanceConfig:
+    """Paralelismo e memória."""
+
+    n_workers: int
+    """Processos em paralelo (0 = todos os núcleos)."""
+    eval_chunk_bytes: int
+    """Memória de trabalho por bloco de avaliação [bytes]."""
+
+
+@dataclass(frozen=True)
 class ScenarioConfig:
     """Configuração completa de um cenário (cabeça, membros, ...)."""
 
@@ -125,6 +135,7 @@ class ScenarioConfig:
     constraints: ConstraintsConfig
     ga: GAConfig
     model: ModelConfig
+    performance: PerformanceConfig
 
 
 def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
@@ -194,7 +205,7 @@ def _candidate_radii(minimum: float, maximum: float, step: float) -> tuple[float
 
 
 def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
-    expected = {"field", "magnet", "ring", "stack", "domain", "constraints", "ga", "model"}
+    expected = {"field", "magnet", "ring", "stack", "domain", "constraints", "ga", "model", "performance"}
     missing = expected - set(raw)
     unknown = set(raw) - expected
     if missing:
@@ -278,6 +289,13 @@ def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
     model = ModelConfig(backend=backend)
     s.finish()
 
+    s = _Section(f"{name}.performance", raw["performance"])
+    performance = PerformanceConfig(
+        n_workers=s.integer("n_workers", minimum=0),
+        eval_chunk_bytes=int(s.number("eval_chunk_mb", positive=True) * 2**20),
+    )
+    s.finish()
+
     return ScenarioConfig(
         name=name,
         field=field,
@@ -288,6 +306,7 @@ def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
         constraints=constraints,
         ga=ga,
         model=model,
+        performance=performance,
     )
 
 

@@ -60,8 +60,8 @@ def test_ga_reaches_feasible_region_and_is_reproducible(objective_and_space) -> 
     target = (mean_min + mean_max) / 2
     objective = Objective(table=table, mass_table=space.mass_table(), target_field=target,
                           field_tolerance=0.02 * target, max_mass=1e3)
-    first = run_ga(objective, space.n_slots, space.n_options, _cfg())
-    second = run_ga(objective, space.n_slots, space.n_options, _cfg())
+    first = run_ga(objective.evaluate_batch, space.n_slots, space.n_options, _cfg())
+    second = run_ga(objective.evaluate_batch, space.n_slots, space.n_options, _cfg())
     assert first.best.feasible
     assert first.best_genes == second.best_genes
     assert all(0 <= g < space.n_options for g in first.best_genes)
@@ -74,7 +74,7 @@ def test_ga_prefers_smaller_violation_when_infeasible(objective_and_space) -> No
     space, table = objective_and_space
     objective = Objective(table=table, mass_table=space.mass_table(), target_field=1.0,
                           field_tolerance=1e-3, max_mass=1e3)
-    result = run_ga(objective, space.n_slots, space.n_options, _cfg())
+    result = run_ga(objective.evaluate_batch, space.n_slots, space.n_options, _cfg())
     # alvo inalcançável (1 T): o GA deve ir para o maior campo possível
     assert not result.best.feasible
     assert result.best_genes == (0,) * space.n_slots

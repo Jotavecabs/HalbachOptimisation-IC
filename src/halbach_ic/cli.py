@@ -18,7 +18,15 @@ from pathlib import Path
 
 from halbach_ic.config import DEFAULT_CONFIG_PATH, ScenarioConfig, available_scenarios, load_config
 from halbach_ic.optimizer import GenerationStats
-from halbach_ic.pipeline import RunResult, design_space, evaluation_grid, run
+from halbach_ic.memory import InsufficientMemoryError, available_memory, check_memory, format_bytes
+from halbach_ic.parallel import resolve_workers
+from halbach_ic.pipeline import RunResult, design_space, evaluation_grid, memory_estimate, run
+
+
+SECONDS_PER_PAIR = {"dipole": 2.3e-8, "cuboid": 2.9e-7}
+"""Custo medido por par (ponto, ímã) num MacBook Air M4, 1 processo (DOCS/fase3_desempenho.md)."""
+PARALLEL_SPEEDUP_CAP = 3.0
+"""Aceleração máxima medida no pré-cálculo com vários processos no M4."""
 
 
 def _print_generation(stats: GenerationStats) -> None:
@@ -43,7 +51,22 @@ def _info(cfg: ScenarioConfig) -> None:
     print(f"{space.n_slots} slots (anéis em z = ±{max(max(s) for s in space.slots) * 1e3:.0f} mm), "
           f"{space.n_options} opções por slot -> {space.n_options:.0f}^{space.n_slots} = "
           f"{float(space.n_options) ** space.n_slots:.2e} combinações")
-    print(f"tabela de campos: {n_points * space.n_slots * space.n_options * 4 / 1e6:.1f} MB (float32)")
+    estimate = memory_estimate(cfg, space, grid)
+    print(f"processos: {resolve_workers(cfg.performance.n_workers)}")
+    print(f"memória prevista: {format_bytes(estimate.total)} (tabela {format_bytes(estimate.table)} em float32, "
+          f"compartilhada) de {format_bytes(available_memory())} disponíveis")
+    try:
+        warning = check_memory(estimate)
+        if warning:
+            print(warning)
+    except InsufficientMemoryError as exc:
+        print(f"ERRO: {exc}")
+    pairs = n_points * sum(len(slot) * ring.total_magnets for slot in space.slots for ring in space.options)
+    rate = SECONDS_PER_PAIR[cfg.model.backend]
+    workers = resolve_workers(cfg.performance.n_workers)
+    serial = pairs * rate
+    print(f"pré-cálculo: {pairs:.2e} pares (ponto, ímã); tempo previsto ~{serial:.0f} s com 1 processo, "
+          f"~{serial / min(workers, PARALLEL_SPEEDUP_CAP):.0f} s com {workers} (referência: MacBook Air M4)")
     mass = space.mass_table()
     print(f"massa possível: {mass.min(axis=1).sum():.1f} a {mass.max(axis=1).sum():.1f} kg "
           f"(limite {cfg.constraints.max_magnet_mass:.1f} kg)")
@@ -80,7 +103,8 @@ def _result_dict(result: RunResult) -> dict:
         "mass_kg": design.mass,
         "n_magnets": design.n_magnets,
         "free_bore_diameter_mm": design.free_bore_diameter * 1e3,
-        "timing_s": {"precompute": result.precompute_time, "ga": result.ga.elapsed},
+        "timing_s": {"precompute": result.precompute_time, "ga": result.ga.elapsed,
+                     "field_map": result.field_map_time},
         "evaluations": result.ga.evaluations,
         "history": [dataclasses.asdict(h) for h in result.ga.history],
         "config": dataclasses.asdict(result.cfg),
@@ -103,7 +127,8 @@ def _run(cfg: ScenarioConfig, outdir: Path, show: bool) -> None:
     print(f"esfera inteira: {result.full_ppm:.1f} ppm, {result.full_mean_field * 1e3:.3f} mT")
     print(f"massa: {result.design.mass:.2f} kg em {result.design.n_magnets} ímãs; "
           f"bore livre Ø{result.design.free_bore_diameter * 1e3:.1f} mm")
-    print(f"tempo: pré-cálculo {result.precompute_time:.1f} s, GA {result.ga.elapsed:.1f} s "
+    print(f"tempo: pré-cálculo {result.precompute_time:.1f} s, GA {result.ga.elapsed:.1f} s, "
+          f"mapa final {result.field_map_time:.1f} s "
           f"({result.ga.evaluations} avaliações distintas)")
     print(f"arquivos em {outdir}: resultado.json, " + ", ".join(p.name for p in paths))
     if show:
@@ -133,6 +158,7 @@ def main(argv: list[str] | None = None) -> None:
     run_cmd.add_argument("--generations", type=int, default=None, help="sobrescreve ga.generations")
     run_cmd.add_argument("--seed", type=int, default=None, help="sobrescreve ga.seed")
     run_cmd.add_argument("--backend", choices=["dipole", "cuboid"], default=None, help="sobrescreve model.backend")
+    run_cmd.add_argument("--workers", type=int, default=None, help="sobrescreve performance.n_workers")
     run_cmd.add_argument("--show", action="store_true", help="abre os gráficos ao final")
 
     args = parser.parse_args(argv)
@@ -148,6 +174,8 @@ def main(argv: list[str] | None = None) -> None:
                                     "seed": args.seed}.items() if v is not None}
     if overrides:
         cfg = dataclasses.replace(cfg, ga=dataclasses.replace(cfg.ga, **overrides))
+    if args.workers is not None:
+        cfg = dataclasses.replace(cfg, performance=dataclasses.replace(cfg.performance, n_workers=args.workers))
     if args.backend is not None:
         cfg = dataclasses.replace(cfg, model=dataclasses.replace(cfg.model, backend=args.backend))
     outdir = args.out or Path("results") / f"{cfg.name}_{time.strftime('%Y%m%d_%H%M%S')}"

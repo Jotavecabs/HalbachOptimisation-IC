@@ -18,6 +18,9 @@ from numpy.typing import NDArray
 
 from halbach_ic.geometry import MU0, MagnetArray
 
+FIELD_CHUNK_PAIRS = 200_000
+"""Pares (ponto, ímã) por bloco. Blocos maiores não aceleram (medido na Fase 3) e só gastam memória."""
+
 
 class FieldBackend(Protocol):
     """Interface comum dos modelos de campo."""
@@ -39,7 +42,7 @@ class DipoleBackend:
 
     name = "dipole"
 
-    def __init__(self, max_chunk_elements: int = 4_000_000) -> None:
+    def __init__(self, max_chunk_elements: int = FIELD_CHUNK_PAIRS) -> None:
         """
         Args:
             max_chunk_elements: limite de pares (ponto, ímã) calculados de uma vez,
@@ -83,7 +86,7 @@ class CuboidBackend:
 
     name = "cuboid"
 
-    def __init__(self, max_chunk_elements: int = 1_000_000) -> None:
+    def __init__(self, max_chunk_elements: int = FIELD_CHUNK_PAIRS) -> None:
         """
         Args:
             max_chunk_elements: limite de pares (ponto, ímã) calculados de uma vez.

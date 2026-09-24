@@ -11,10 +11,13 @@ from numpy.typing import NDArray
 
 from halbach_ic.config import ScenarioConfig, Symmetry
 from halbach_ic.domain import EvaluationGrid, make_grid
+from halbach_ic.evaluator import ParallelEvaluator
 from halbach_ic.field_model import FieldBackend, get_backend
 from halbach_ic.geometry import Design, DesignSpace, MagnetSpec, build_design_space
+from halbach_ic.memory import MemoryEstimate, check_memory, estimate_memory
 from halbach_ic.objective import Objective, build_field_table, field_unit_vector, homogeneity_ppm
 from halbach_ic.optimizer import GAResult, GenerationStats, run_ga
+from halbach_ic.parallel import compute_field, resolve_workers
 
 
 def magnet_spec(cfg: ScenarioConfig) -> MagnetSpec:
@@ -44,17 +47,35 @@ def evaluation_grid(cfg: ScenarioConfig) -> EvaluationGrid:
     return make_grid(cfg.domain.dsv_diameter, cfg.domain.grid_spacing)
 
 
+def memory_estimate(cfg: ScenarioConfig, space: DesignSpace, grid: EvaluationGrid,
+                    symmetry: Symmetry | None = None) -> MemoryEstimate:
+    """Memória prevista para otimizar este cenário."""
+    return estimate_memory(
+        n_points=int(grid.mask(symmetry or cfg.domain.symmetry).sum()),
+        n_slots=space.n_slots,
+        n_options=space.n_options,
+        n_workers=resolve_workers(cfg.performance.n_workers),
+        chunk_bytes=cfg.performance.eval_chunk_bytes,
+    )
+
+
 def build_objective(
     cfg: ScenarioConfig,
     space: DesignSpace,
     grid: EvaluationGrid,
     backend: FieldBackend,
     symmetry: Symmetry | None = None,
+    n_workers: int | None = None,
 ) -> Objective:
-    """Pré-calcula a tabela de campos e monta a função objetivo."""
+    """Pré-calcula a tabela de campos e monta a função objetivo.
+
+    Args:
+        n_workers: processos no pré-cálculo (padrão: ``performance.n_workers``).
+    """
     symmetry = symmetry or cfg.domain.symmetry
     table = build_field_table(
-        space, grid.points(symmetry), backend, cfg.field.direction, weights=grid.weights(symmetry)
+        space, grid.points(symmetry), backend, cfg.field.direction, weights=grid.weights(symmetry),
+        n_workers=cfg.performance.n_workers if n_workers is None else n_workers,
     )
     return Objective(
         table=table,
@@ -62,6 +83,7 @@ def build_objective(
         target_field=cfg.field.target,
         field_tolerance=cfg.field.tolerance,
         max_mass=cfg.constraints.max_magnet_mass,
+        chunk_bytes=cfg.performance.eval_chunk_bytes,
     )
 
 
@@ -80,11 +102,12 @@ class FieldMap:
         return self.component[self.grid.sphere_mask()]
 
 
-def field_map(design: Design, grid: EvaluationGrid, backend: FieldBackend, field_direction: float) -> FieldMap:
+def field_map(design: Design, grid: EvaluationGrid, backend: FieldBackend, field_direction: float,
+              n_workers: int = 1) -> FieldMap:
     """Calcula o campo da solução na esfera inteira do DSV."""
     mask = grid.sphere_mask()
     vector = np.full((*grid.shape, 3), np.nan)
-    vector[mask] = backend.field(grid.points("full"), design.magnets())
+    vector[mask] = compute_field(grid.points("full"), design.magnets(), backend, n_workers)
     component = vector @ field_unit_vector(field_direction)
     return FieldMap(grid=grid, vector=vector, component=component)
 
@@ -103,6 +126,8 @@ class RunResult:
     """Campo médio na esfera inteira [T]."""
     precompute_time: float
     """Tempo de pré-cálculo da tabela [s]."""
+    field_map_time: float
+    """Tempo do mapa final na esfera inteira [s]."""
 
 
 def run(
@@ -116,17 +141,24 @@ def run(
     grid = evaluation_grid(cfg)
     for bore, reason in space.rejected:
         log(f"candidato recusado (bore {bore * 1e3:.1f} mm): {reason}")
+    workers = resolve_workers(cfg.performance.n_workers)
     log(f"{space.n_slots} slots x {space.n_options} opções; simetria: {cfg.domain.symmetry}; "
-        f"modelo de campo: {backend.name}")
+        f"modelo de campo: {backend.name}; processos: {workers}")
+    warning = check_memory(memory_estimate(cfg, space, grid))
+    if warning:
+        log(warning)
 
     t0 = time.perf_counter()
     objective = build_objective(cfg, space, grid, backend)
     precompute_time = time.perf_counter() - t0
     log(f"tabela de campos: {objective.table.values.nbytes / 1e6:.1f} MB, {precompute_time:.1f} s")
 
-    ga = run_ga(objective, space.n_slots, space.n_options, cfg.ga, progress)
+    with ParallelEvaluator(objective, workers) as evaluate:
+        ga = run_ga(evaluate, space.n_slots, space.n_options, cfg.ga, progress)
     design = Design(space, ga.best_genes)
-    fmap = field_map(design, grid, backend, cfg.field.direction)
+    t0 = time.perf_counter()
+    fmap = field_map(design, grid, backend, cfg.field.direction, workers)
+    field_map_time = time.perf_counter() - t0
     inside = fmap.inside_values()
     return RunResult(
         cfg=cfg,
@@ -136,4 +168,5 @@ def run(
         full_ppm=homogeneity_ppm(inside),
         full_mean_field=float(np.mean(inside)),
         precompute_time=precompute_time,
+        field_map_time=field_map_time,
     )
