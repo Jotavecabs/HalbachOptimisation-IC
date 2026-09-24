@@ -10,6 +10,7 @@ dependencies = [
     "scipy>=1.13",
     "deap>=1.4",
     "matplotlib>=3.8",
+    "magpylib>=5",
 ]
 
 [dependency-groups]

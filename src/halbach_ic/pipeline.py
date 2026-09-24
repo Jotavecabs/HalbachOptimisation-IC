@@ -107,17 +107,17 @@ class RunResult:
 
 def run(
     cfg: ScenarioConfig,
-    backend_name: str = "dipole",
     progress: Callable[[GenerationStats], None] | None = None,
     log: Callable[[str], None] = print,
 ) -> RunResult:
     """Executa o fluxo completo: geometria, pré-cálculo, GA e avaliação final na esfera inteira."""
-    backend = get_backend(backend_name)
+    backend = get_backend(cfg.model.backend)
     space = design_space(cfg)
     grid = evaluation_grid(cfg)
     for bore, reason in space.rejected:
         log(f"candidato recusado (bore {bore * 1e3:.1f} mm): {reason}")
-    log(f"{space.n_slots} slots x {space.n_options} opções; simetria: {cfg.domain.symmetry}")
+    log(f"{space.n_slots} slots x {space.n_options} opções; simetria: {cfg.domain.symmetry}; "
+        f"modelo de campo: {backend.name}")
 
     t0 = time.perf_counter()
     objective = build_objective(cfg, space, grid, backend)

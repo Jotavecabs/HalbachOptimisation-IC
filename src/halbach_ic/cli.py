@@ -37,6 +37,7 @@ def _info(cfg: ScenarioConfig) -> None:
     print(f"cenário: {cfg.name}")
     print(f"DSV: {cfg.domain.dsv_diameter * 1e3:.0f} mm, grade {grid.axis.size}^3, "
           f"{n_points} pontos avaliados ({cfg.domain.symmetry})")
+    print(f"modelo de campo: {cfg.model.backend}")
     print(f"campo alvo: {cfg.field.target * 1e3:.1f} ± {cfg.field.tolerance * 1e3:.1f} mT, "
           f"direção {math.degrees(cfg.field.direction):.0f}°")
     print(f"{space.n_slots} slots (anéis em z = ±{max(max(s) for s in space.slots) * 1e3:.0f} mm), "
@@ -131,6 +132,7 @@ def main(argv: list[str] | None = None) -> None:
     run_cmd.add_argument("--population", type=int, default=None, help="sobrescreve ga.population")
     run_cmd.add_argument("--generations", type=int, default=None, help="sobrescreve ga.generations")
     run_cmd.add_argument("--seed", type=int, default=None, help="sobrescreve ga.seed")
+    run_cmd.add_argument("--backend", choices=["dipole", "cuboid"], default=None, help="sobrescreve model.backend")
     run_cmd.add_argument("--show", action="store_true", help="abre os gráficos ao final")
 
     args = parser.parse_args(argv)
@@ -146,6 +148,8 @@ def main(argv: list[str] | None = None) -> None:
                                     "seed": args.seed}.items() if v is not None}
     if overrides:
         cfg = dataclasses.replace(cfg, ga=dataclasses.replace(cfg.ga, **overrides))
+    if args.backend is not None:
+        cfg = dataclasses.replace(cfg, model=dataclasses.replace(cfg.model, backend=args.backend))
     outdir = args.out or Path("results") / f"{cfg.name}_{time.strftime('%Y%m%d_%H%M%S')}"
     _run(cfg, outdir, args.show)
 

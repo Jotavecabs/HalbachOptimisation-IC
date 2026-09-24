@@ -105,6 +105,14 @@ class GAConfig:
 
 
 @dataclass(frozen=True)
+class ModelConfig:
+    """Modelo de campo."""
+
+    backend: str
+    """``"dipole"`` (rápido) ou ``"cuboid"`` (exato)."""
+
+
+@dataclass(frozen=True)
 class ScenarioConfig:
     """Configuração completa de um cenário (cabeça, membros, ...)."""
 
@@ -116,6 +124,7 @@ class ScenarioConfig:
     domain: DomainConfig
     constraints: ConstraintsConfig
     ga: GAConfig
+    model: ModelConfig
 
 
 def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
@@ -185,7 +194,7 @@ def _candidate_radii(minimum: float, maximum: float, step: float) -> tuple[float
 
 
 def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
-    expected = {"field", "magnet", "ring", "stack", "domain", "constraints", "ga"}
+    expected = {"field", "magnet", "ring", "stack", "domain", "constraints", "ga", "model"}
     missing = expected - set(raw)
     unknown = set(raw) - expected
     if missing:
@@ -262,6 +271,13 @@ def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
     )
     s.finish()
 
+    s = _Section(f"{name}.model", raw["model"])
+    backend = s.get("backend")
+    if backend not in ("dipole", "cuboid"):
+        raise ConfigError(f"[{name}.model] backend deve ser 'dipole' ou 'cuboid', recebido {backend!r}")
+    model = ModelConfig(backend=backend)
+    s.finish()
+
     return ScenarioConfig(
         name=name,
         field=field,
@@ -271,6 +287,7 @@ def _parse_scenario(name: str, raw: dict[str, Any]) -> ScenarioConfig:
         domain=domain,
         constraints=constraints,
         ga=ga,
+        model=model,
     )
 
 

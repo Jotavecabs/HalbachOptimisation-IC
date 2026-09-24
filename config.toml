@@ -41,11 +41,14 @@ axial_gap_mm = 1.0            # folga axial mínima entre cubos de anéis vizinh
 [defaults.domain]
 dsv_diameter_mm = 200.0       # diâmetro da esfera de avaliação
 grid_spacing_mm = 5.0         # espaçamento da grade de avaliação
-symmetry = "octant"           # "octant" (8x mais rápido, aproximado p/ N ímpar) ou "full"
+symmetry = "octant"           # "octant" (8x mais rápido; exato com os pesos, ver DOCS/correcoes.md item 6) ou "full"
 
 [defaults.constraints]
 min_bore_diameter_mm = 270.0  # diâmetro livre mínimo (bobinas de gradiente e RF)
 max_magnet_mass_kg = 40.0     # massa total máxima dos ímãs
+
+[defaults.model]
+backend = "cuboid"            # "cuboid" (campo exato do cubo, magpylib) ou "dipole" (rápido, aproximado)
 
 [defaults.ga]
 population = 10000
