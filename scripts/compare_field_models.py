@@ -134,7 +134,7 @@ def compare_scenario(cfg: ScenarioConfig, n_random: int) -> dict:
     # (b, c) otimização com cada modelo, avaliação com o exato
     optima = {}
     for name, objective in objectives.items():
-        result = run_ga(objective, space.n_slots, space.n_options, cfg.ga)
+        result = run_ga(objective.evaluate_batch, space.n_slots, space.n_options, cfg.ga)
         exact_eval = exa.evaluate(result.best_genes)
         dipole_eval = dip.evaluate(result.best_genes)
         optima[name] = {

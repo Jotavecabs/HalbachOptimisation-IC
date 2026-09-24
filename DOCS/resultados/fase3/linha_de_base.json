@@ -1,0 +1,36 @@
+{
+  "head_table_dipole_s": 5.215643874835223,
+  "head_table_cuboid_s": 74.80874233413488,
+  "head_ga_s": 25.223763334099203,
+  "head_ga_ppm": 734.060575751813,
+  "head_ga_genes": [
+    17,
+    13,
+    17,
+    13,
+    14,
+    11,
+    14,
+    16,
+    2,
+    3,
+    0,
+    6
+  ],
+  "head_fieldmap_cuboid_s": 27.74593741586432,
+  "limb_table_dipole_s": 0.20964862499386072,
+  "limb_table_cuboid_s": 2.726810125168413,
+  "limb_ga_s": 10.176834458019584,
+  "limb_ga_ppm": 1714.836971422865,
+  "limb_ga_genes": [
+    6,
+    6,
+    6,
+    4,
+    8,
+    1,
+    0,
+    2
+  ],
+  "limb_fieldmap_cuboid_s": 0.8877380830235779
+}

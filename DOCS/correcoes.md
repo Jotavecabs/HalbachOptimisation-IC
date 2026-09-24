@@ -42,11 +42,12 @@ Para cada item: **sintoma**, **causa**, **correção**, **impacto** e **como val
 - **Sintoma:** o array compartilhado (`multiprocessing.Array`) é criado, mas a
   avaliação usa o `map` do Python, em série, num único núcleo.
 - **Causa:** a paralelização ficou incompleta no original.
-- **Correção (Fase 1):** o import e o array compartilhado foram removidos. A
-  paralelização real (`multiprocessing.Pool` no pré-cálculo e na avaliação)
-  está prevista para a Fase 3.
-- **Medida provisória:** o GA novo guarda o resultado de cada vetor já avaliado
-  (cache), então indivíduos repetidos não são recalculados.
+- **Correção (Fase 1):** o import e o array compartilhado foram removidos. O
+  GA passou a guardar o resultado de cada vetor já avaliado (cache), então
+  indivíduos repetidos não são recalculados.
+- **Correção (Fase 3):** paralelização real com `multiprocessing.Pool` no
+  pré-cálculo, na avaliação da população e no mapa final, com a tabela em
+  memória compartilhada. Ver [fase3_desempenho.md](fase3_desempenho.md).
 
 ## 4. Ímã posicionado em `-pos` em vez de `+pos`
 

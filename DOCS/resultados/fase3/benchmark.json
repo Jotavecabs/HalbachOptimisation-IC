@@ -1,0 +1,40 @@
+{
+  "machine": {
+    "cpu": "arm",
+    "cores": 10,
+    "ram": "24.0 GB",
+    "python": "3.12.14"
+  },
+  "scenarios": {
+    "head": {
+      "table_dipole_1w_s": 4.746910207904875,
+      "table_dipole_10w_s": 1.1181904170662165,
+      "table_cuboid_1w_s": 70.64739458309487,
+      "table_cuboid_10w_s": 21.459501083008945,
+      "ga_1w_s": 7.858106249943376,
+      "ga_1w_ppm": 882.1566047963789,
+      "ga_evaluations": 275919,
+      "ga_10w_s": 5.242984416894615,
+      "ga_10w_ppm": 882.1566047963789,
+      "fieldmap_cuboid_1w_s": 26.389877958223224,
+      "fieldmap_cuboid_10w_s": 8.521209542173892,
+      "table_mb": 4.054779052734375,
+      "peak_rss_mb": 348.515625
+    },
+    "limb": {
+      "table_dipole_1w_s": 0.2313964171335101,
+      "table_dipole_10w_s": 0.1712824166752398,
+      "table_cuboid_1w_s": 3.0655858339741826,
+      "table_cuboid_10w_s": 1.2647464158944786,
+      "ga_1w_s": 1.0166591247543693,
+      "ga_1w_ppm": 2298.536052459047,
+      "ga_evaluations": 137352,
+      "ga_10w_s": 0.8493047500960529,
+      "ga_10w_ppm": 2298.536052459047,
+      "fieldmap_cuboid_1w_s": 0.93795295804739,
+      "fieldmap_cuboid_10w_s": 0.7140086656436324,
+      "table_mb": 0.491119384765625,
+      "peak_rss_mb": 420.40625
+    }
+  }
+}

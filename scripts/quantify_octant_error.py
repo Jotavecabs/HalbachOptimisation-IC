@@ -62,7 +62,7 @@ def main() -> None:
 
         # assimetria do campo de um anel isolado (opção 0, slot central)
         component = np.full(grid.shape, np.nan)
-        component[grid.sphere_mask()] = full.values[:, 0, 0]
+        component[grid.sphere_mask()] = full.values[0, 0]
         asym_x = mirror_asymmetry_ppm(grid, component, axis=0)
         asym_y = mirror_asymmetry_ppm(grid, component, axis=1)
 

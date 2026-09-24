@@ -73,6 +73,10 @@ uv run python scripts/quantify_octant_error.py --scenario head
 
 # comparação dipolo x cubo exato (Fase 2, resultados em DOCS/resultados/fase2/)
 uv run python scripts/compare_field_models.py
+
+# desempenho (Fase 3, resultados em DOCS/resultados/fase3/)
+uv run python scripts/benchmark.py
+uv run python scripts/scaling.py
 ```
 
 ### Modelo de campo
@@ -89,6 +93,19 @@ O dipolo erra cerca de `0,25·(a/r)⁴` em relação ao cubo (a = aresta, r =
 distância). Para explorar configurações rapidamente, o dipolo basta. Para os
 números finais, use o `cuboid`. Detalhes em
 [DOCS/fase2_modelo_de_campo.md](DOCS/fase2_modelo_de_campo.md).
+
+### Desempenho e memória
+
+O bloco `[defaults.performance]` controla o paralelismo (`n_workers`, 0 = todos
+os núcleos) e a memória por bloco de avaliação. `halbach-ic info` mostra a
+memória e o tempo previstos antes de rodar. O programa avisa quando a
+configuração passa de metade da RAM disponível e se recusa a começar quando não
+cabe. Na cabeça, com o modelo exato, uma execução completa leva ~35 s num
+MacBook Air M4. Detalhes em [DOCS/fase3_desempenho.md](DOCS/fase3_desempenho.md).
+
+Scripts próprios que usam o pacote precisam do bloco
+`if __name__ == "__main__":`, porque os processos paralelos reimportam o
+arquivo principal.
 
 ### Saídas de `run`
 
@@ -112,8 +129,11 @@ src/halbach_ic/
   geometry.py             HalbachRing, DesignSpace, Design (posições e orientações)
   field_model.py          modelos de campo (dipolo e cubo exato)
   domain.py               grade, esfera do DSV, simetria de octante
-  objective.py            tabela de campos, ppm, restrições
-  optimizer.py            algoritmo genético (DEAP)
+  objective.py            tabela de campos, ppm, restrições (avaliação vetorizada)
+  optimizer.py            algoritmo genético (NumPy, operadores do DEAP)
+  evaluator.py            avaliação da população em paralelo
+  parallel.py             multiprocessing e memória compartilhada
+  memory.py               estimativa de memória e avisos
   pipeline.py             liga as peças
   visualization.py        gráficos
   cad_export.py           exportação CAD (Fase 7)
