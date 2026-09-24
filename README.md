@@ -70,7 +70,25 @@ uv run pytest
 
 # erro da simetria de octante (item 6 de DOCS/correcoes.md)
 uv run python scripts/quantify_octant_error.py --scenario head
+
+# comparação dipolo x cubo exato (Fase 2, resultados em DOCS/resultados/fase2/)
+uv run python scripts/compare_field_models.py
 ```
+
+### Modelo de campo
+
+`model.backend` no `config.toml` (ou `--backend` na linha de comando) escolhe
+o modelo:
+
+| Modelo | O que é | Tempo da tabela (cabeça) |
+|---|---|---|
+| `cuboid` (padrão) | campo analítico exato de cada cubo (magpylib) | ~75 s |
+| `dipole` | cada cubo vira um dipolo pontual | ~5 s |
+
+O dipolo erra cerca de `0,25·(a/r)⁴` em relação ao cubo (a = aresta, r =
+distância). Para explorar configurações rapidamente, o dipolo basta. Para os
+números finais, use o `cuboid`. Detalhes em
+[DOCS/fase2_modelo_de_campo.md](DOCS/fase2_modelo_de_campo.md).
 
 ### Saídas de `run`
 
@@ -92,7 +110,7 @@ config.toml               parâmetros (único lugar com valores numéricos)
 src/halbach_ic/
   config.py               lê o TOML e converte para SI
   geometry.py             HalbachRing, DesignSpace, Design (posições e orientações)
-  field_model.py          modelos de campo (dipolo; cubo exato na Fase 2)
+  field_model.py          modelos de campo (dipolo e cubo exato)
   domain.py               grade, esfera do DSV, simetria de octante
   objective.py            tabela de campos, ppm, restrições
   optimizer.py            algoritmo genético (DEAP)

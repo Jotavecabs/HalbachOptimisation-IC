@@ -1,0 +1,143 @@
+{
+  "single_cube_fit": {
+    "formula": "max_rel_error = C * (a/r)^4",
+    "C": 0.24590479967617937,
+    "fit_range": "r/a >= 5"
+  },
+  "scenarios": [
+    {
+      "scenario": "head",
+      "table_time_s": {
+        "dipole": 5.2068638750351965,
+        "cuboid": 74.38628200022504
+      },
+      "random_designs": {
+        "n": 300,
+        "spearman_ppm": 0.9999973333037033,
+        "ppm_rel_diff_median": 0.00017791327468197338,
+        "ppm_rel_diff_max": 0.00144768387262606,
+        "ppm_abs_diff_median": 21.26450143760303,
+        "mean_field_rel_diff_median_ppm": 0.09785605314559356,
+        "pointwise_max_diff_ppm_max": 127.49202996618678
+      },
+      "optima": {
+        "dipole": {
+          "genes": [
+            16,
+            14,
+            16,
+            14,
+            13,
+            13,
+            12,
+            16,
+            2,
+            5,
+            1,
+            1
+          ],
+          "ppm_own_model": 786.4097837448687,
+          "mean_field_mT_own_model": 49.68417996117484,
+          "ppm_exact": 788.4916282937933,
+          "mean_field_mT_exact": 49.68418030895695,
+          "feasible_exact": true,
+          "ppm_dipole": 786.4097837448687
+        },
+        "cuboid": {
+          "genes": [
+            17,
+            13,
+            17,
+            13,
+            14,
+            11,
+            14,
+            16,
+            2,
+            3,
+            0,
+            6
+          ],
+          "ppm_own_model": 734.060575751813,
+          "mean_field_mT_own_model": 49.77557539330126,
+          "ppm_exact": 734.060575751813,
+          "mean_field_mT_exact": 49.77557539330126,
+          "feasible_exact": true,
+          "ppm_dipole": 738.1125596670685
+        }
+      },
+      "dipole_optimum_loss_ppm": 54.43105254198031,
+      "same_design_model_error_ppm": {
+        "dipole": -2.0818445489245505,
+        "cuboid": 4.051983915255505
+      },
+      "difference_map_z0_ppm": {
+        "min": -8.794622239705953,
+        "max": 9.195982512267221
+      }
+    },
+    {
+      "scenario": "limb",
+      "table_time_s": {
+        "dipole": 0.19999145809561014,
+        "cuboid": 2.7948322081938386
+      },
+      "random_designs": {
+        "n": 300,
+        "spearman_ppm": 0.9999835553728375,
+        "ppm_rel_diff_median": 0.0008209788770477955,
+        "ppm_rel_diff_max": 0.013742952957318089,
+        "ppm_abs_diff_median": 87.81827669336053,
+        "mean_field_rel_diff_median_ppm": 0.9128583532129103,
+        "pointwise_max_diff_ppm_max": 1380.5651211333852
+      },
+      "optima": {
+        "dipole": {
+          "genes": [
+            6,
+            6,
+            6,
+            4,
+            8,
+            1,
+            0,
+            2
+          ],
+          "ppm_own_model": 1777.793363076409,
+          "mean_field_mT_own_model": 49.20977122401986,
+          "ppm_exact": 1714.836971422865,
+          "mean_field_mT_exact": 49.209785852758756,
+          "feasible_exact": true,
+          "ppm_dipole": 1777.793363076409
+        },
+        "cuboid": {
+          "genes": [
+            6,
+            6,
+            6,
+            4,
+            8,
+            1,
+            0,
+            2
+          ],
+          "ppm_own_model": 1714.836971422865,
+          "mean_field_mT_own_model": 49.209785852758756,
+          "ppm_exact": 1714.836971422865,
+          "mean_field_mT_exact": 49.209785852758756,
+          "feasible_exact": true,
+          "ppm_dipole": 1777.793363076409
+        }
+      },
+      "dipole_optimum_loss_ppm": 0.0,
+      "same_design_model_error_ppm": {
+        "dipole": 62.95639165354396,
+        "cuboid": 62.95639165354396
+      },
+      "difference_map_z0_ppm": {
+        "min": -105.18677013575035,
+        "max": 129.63756980177365
+      }
+    }
+  ]
+}
