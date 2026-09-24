@@ -1,0 +1,81 @@
+# =============================================================================
+# Configuração única do projeto.
+#
+# Unidades de ENTRADA (indicadas no nome de cada chave):
+#   comprimentos em mm, campos em mT (ou T para remanência), ângulos em graus,
+#   massas em kg. O módulo halbach_ic.config converte tudo para SI na leitura.
+#
+# Estrutura:
+#   [defaults.*]           valores comuns a todos os cenários
+#   [scenarios.<nome>.*]   sobrescreve apenas o que muda naquele cenário
+#
+# Chaves desconhecidas geram erro (para pegar erros de digitação).
+# =============================================================================
+
+[defaults.field]
+target_mT = 50.0              # campo médio alvo no DSV
+tolerance_mT = 1.0            # faixa aceita: target ± tolerance
+direction_deg = -90.0         # direção de B0 no plano transversal; -90 = -y (de cima para baixo)
+
+[defaults.magnet]
+size_mm = 12.0                # aresta do cubo
+remanence_T = 1.3             # Br (NdFeB ~N42)
+density_kg_m3 = 7500.0        # densidade do NdFeB
+
+[defaults.ring]
+n_bands = 2                   # camadas concêntricas por anel
+band_gap_mm = 4.0             # folga radial extra entre camadas (além de a*sqrt(2))
+magnet_gap_mm = 1.5           # folga tangencial mínima entre ímãs vizinhos (além de a*sqrt(2))
+angle_offset_deg = 0.0        # posição angular do 1º ímã relativa à direção de B0
+# Candidatos para o raio livre interno (bore) de cada anel. O otimizador
+# escolhe um desses valores para cada posição z.
+bore_radius_min_mm = 140.0
+bore_radius_max_mm = 194.0
+bore_radius_step_mm = 3.0
+
+[defaults.stack]
+n_rings = 23                  # número de anéis ao longo de z
+ring_spacing_mm = 22.0        # distância entre centros de anéis vizinhos
+axial_gap_mm = 1.0            # folga axial mínima entre cubos de anéis vizinhos
+
+[defaults.domain]
+dsv_diameter_mm = 200.0       # diâmetro da esfera de avaliação
+grid_spacing_mm = 5.0         # espaçamento da grade de avaliação
+symmetry = "octant"           # "octant" (8x mais rápido, aproximado p/ N ímpar) ou "full"
+
+[defaults.constraints]
+min_bore_diameter_mm = 270.0  # diâmetro livre mínimo (bobinas de gradiente e RF)
+max_magnet_mass_kg = 40.0     # massa total máxima dos ímãs
+
+[defaults.ga]
+population = 10000
+generations = 100
+crossover_prob = 0.55
+mutation_prob = 0.4           # probabilidade de um indivíduo sofrer mutação
+gene_mutation_prob = 0.05     # probabilidade de cada gene ser sorteado de novo
+tournament_size = 3
+seed = 0                      # use -1 para semente aleatória
+
+# -----------------------------------------------------------------------------
+# Cenário cabeça: DSV ~200 mm (valores de partida = ímã de 50 mT do LUMC)
+# -----------------------------------------------------------------------------
+[scenarios.head.domain]
+dsv_diameter_mm = 200.0
+
+# -----------------------------------------------------------------------------
+# Cenário membros: DSV ~100-120 mm.
+# AJUSTAR: bore, massa e número de anéis são valores iniciais de exemplo.
+# -----------------------------------------------------------------------------
+[scenarios.limb.domain]
+dsv_diameter_mm = 110.0
+
+[scenarios.limb.ring]
+bore_radius_min_mm = 80.0
+bore_radius_max_mm = 134.0
+
+[scenarios.limb.stack]
+n_rings = 15
+
+[scenarios.limb.constraints]
+min_bore_diameter_mm = 150.0
+max_magnet_mass_kg = 20.0
