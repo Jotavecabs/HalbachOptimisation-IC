@@ -64,12 +64,16 @@ dsv_diameter_mm = 200.0
 
 # -----------------------------------------------------------------------------
 # Cenário membros: DSV ~100-120 mm.
-# AJUSTAR: bore, massa e número de anéis são valores iniciais de exemplo.
+# Uma camada só: com bore de 160-270 mm, duas camadas passam de 50 mT
+# (65-109 mT no centro). Com uma camada, o campo no centro vai de ~61 mT
+# (menor raio) a ~35 mT (maior raio), então 50 mT fica no meio da faixa e a
+# massa cai para 6-9 kg.
 # -----------------------------------------------------------------------------
 [scenarios.limb.domain]
 dsv_diameter_mm = 110.0
 
 [scenarios.limb.ring]
+n_bands = 1
 bore_radius_min_mm = 80.0
 bore_radius_max_mm = 134.0
 
