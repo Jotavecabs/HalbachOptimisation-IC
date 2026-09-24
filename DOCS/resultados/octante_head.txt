@@ -1,0 +1,19 @@
+cenário head: DSV 200 mm, grade 5 mm
+
+B0 em +0°  (paridade de N por banda nas opções: [(0, 1), (1, 0)])
+  erro relativo máximo do octante vs esfera inteira (300 soluções aleatórias):
+    pico a pico (max - min):         0.0e+00
+    média simples (como no original): 1.2e-03
+    ppm com média simples:            1.2e-03
+    ppm com média ponderada (novo):   1.3e-11
+  assimetria de espelho de um anel isolado (z = 0, opção 0):
+    x -> -x: 0.0e+00 ppm | y -> -y: 0.0e+00 ppm
+
+B0 em -90°  (paridade de N por banda nas opções: [(0, 1), (1, 0)])
+  erro relativo máximo do octante vs esfera inteira (300 soluções aleatórias):
+    pico a pico (max - min):         7.4e-07
+    média simples (como no original): 1.1e-03
+    ppm com média simples:            1.1e-03
+    ppm com média ponderada (novo):   7.4e-07
+  assimetria de espelho de um anel isolado (z = 0, opção 0):
+    x -> -x: 0.0e+00 ppm | y -> -y: 0.0e+00 ppm
