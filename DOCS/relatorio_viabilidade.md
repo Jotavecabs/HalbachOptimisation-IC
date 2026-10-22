@@ -1,6 +1,6 @@
 # Análise de viabilidade do ímã Halbach para RM portátil de 50 mT
 
-**Iniciação Científica — Engenharia de Computação, UTFPR**
+**Iniciação Científica — Engenharia de Computação, UTFPR**  
 **Aluno:** [seu nome] · **Orientador:** [nome do professor] · **Data:** outubro de 2026
 
 ---
@@ -20,7 +20,7 @@ Requisitos comuns: campo de **50 ± 1 mT** no centro, campo **vertical**
 (perpendicular ao eixo do bore) e comprimento do ímã entre **54 e 76 cm**.
 A **homogeneidade é o objetivo**: quanto mais perto de 100 %, melhor.
 
-> Homogeneidade (%) = 100 % − (B_máx − B_mín)/B0 × 100.
+> Homogeneidade (%) = 100 % − (B_máx − B_mín)/B0 × 100.  
 > Conversão: 10 000 ppm = 99 % · 1 000 ppm = 99,9 % · 100 ppm = 99,99 %.
 
 ---
@@ -64,10 +64,11 @@ Foram simulados **1 914 arranjos para a cabeça** e **1 331 para os membros**.
   cubos não se sobreponham. Arranjos fisicamente impossíveis são descartados.
 - **Medida da homogeneidade:** dentro do DSV não há ímãs, então cada
   componente do campo é uma função harmônica (∇²B = 0). Disso decorre que:
-  - o **máximo e o mínimo** do campo na esfera ficam **na superfície**
-    (princípio do máximo);
-  - a **média** do campo no volume é igual ao **valor no centro**
-    (propriedade da média).
+
+    - o **máximo e o mínimo** do campo na esfera ficam **na superfície**
+      (princípio do máximo);
+    - a **média** do campo no volume é igual ao **valor no centro**
+      (propriedade da média).
 
   A homogeneidade é calculada com pontos só na superfície do DSV. O método foi
   validado contra uma grade 3D completa: diferença de 6×10⁻⁶ no campo e menor
@@ -179,11 +180,15 @@ compromisso possível entre massa e homogeneidade com anéis iguais.
 | Diâmetro externo | 31,4 cm | 23,4 cm |
 | Frequência de Larmor (¹H) | 2,14 MHz | 2,11 MHz |
 
-Campo de cada arranjo nos planos centrais:
+### Campo B0 nos planos centrais do DSV — cabeça
 
-| Cabeça | Membros |
-|---|---|
-| ![cortes cabeça](resultados/viabilidade/head/figuras/referencia_cortes.png) | ![cortes membros](resultados/viabilidade/limb/figuras/referencia_cortes.png) |
+Cor uniforme = campo homogêneo.
+
+![cortes cabeça](resultados/viabilidade/head/figuras/referencia_cortes.png)
+
+### Campo B0 nos planos centrais do DSV — membros
+
+![cortes membros](resultados/viabilidade/limb/figuras/referencia_cortes.png)
 
 ---
 
