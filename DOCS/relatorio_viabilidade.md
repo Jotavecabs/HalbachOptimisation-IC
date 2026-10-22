@@ -1,7 +1,7 @@
 # Análise de viabilidade do ímã Halbach para RM portátil de 50 mT
 
 **Iniciação Científica — Engenharia de Computação, UTFPR**  
-**Aluno:** [seu nome] · **Orientador:** [nome do professor] · **Data:** outubro de 2026
+**Aluno:** João Vitor Cabeça · **Orientador:** Marcelo Antonassi · **Data:** outubro de 2026
 
 ---
 
