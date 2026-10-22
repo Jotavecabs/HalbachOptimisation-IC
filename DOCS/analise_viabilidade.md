@@ -65,9 +65,52 @@ y_faixa = [100, 220, 5]
 Parâmetros disponíveis: `n_rings`, `ring_spacing_mm`, `bore_radius_mm`,
 `n_bands`, `magnet_size_mm`, `remanence_T`, `dsv_diameter_mm`.
 
-Os **critérios de viabilidade** (campo alvo e tolerância, bore mínimo, massa
-máxima) vêm do [config.toml](../config.toml). Para incluir um limite de
-homogeneidade, use `ppm_maximo` no `viabilidade.toml`.
+## Requisitos e objetivo
+
+Um arranjo é **viável** quando atende a todos os requisitos:
+
+| Requisito | Valor | Onde fica |
+|---|---|---|
+| Campo no centro | 50 ± 1 mT | `config.toml` |
+| Bore mínimo | Ø270 mm (cabeça), Ø150 mm (membros) | `config.toml` |
+| Massa de ímãs | ≤ 40 kg (cabeça), ≤ 20 kg (membros) | `config.toml` |
+| Comprimento | entre 54 e 76 cm | `viabilidade.toml` (`comprimento_min_mm`, `comprimento_max_mm`) |
+
+A **homogeneidade é o objetivo**, não um corte: entre os viáveis, o melhor
+é o mais próximo de 100 %. Ela aparece em % (100 % = campo perfeitamente
+uniforme) e em ppm:
+
+| ppm | homogeneidade |
+|---|---|
+| 10 000 | 99 % |
+| 1 000 | 99,9 % |
+| 100 | 99,99 % |
+
+Para exigir um mínimo, use `ppm_maximo` no `viabilidade.toml`.
+
+## Busca da configuração de referência
+
+As configurações de referência do `viabilidade.toml` são os **melhores
+arranjos de anéis iguais que atendem a todos os requisitos**. Elas foram
+encontradas testando todas as combinações de número de anéis, espaçamento,
+bore e número de camadas:
+
+```bash
+uv run python scripts/buscar_referencia.py --scenario head
+uv run python scripts/buscar_referencia.py --scenario limb --camadas 1 2 --csv viaveis_limb.csv
+```
+
+| Cenário | Melhor arranjo de anéis iguais | B0 | Homogeneidade | Massa | Comprimento |
+|---|---|---|---|---|---|
+| Cabeça | 47 anéis, 1 camada, espaçamento 16 mm, bore Ø280 mm | 50,3 mT | 99,29 % (7 098 ppm) | 30,5 kg | 74,8 cm |
+| Membros | 35 anéis, 1 camada, espaçamento 22 mm, bore Ø200 mm | 49,6 mT | 99,93 % (685 ppm) | 16,3 kg | 76,0 cm |
+
+(valores com o modelo exato; a busca usa o dipolo, que difere ~3 % na
+inomogeneidade dos membros)
+
+Nos dois cenários, os melhores são **ímãs longos (perto de 76 cm) com uma
+camada só**: o comprimento afasta as pontas do DSV, e uma camada basta para
+os 50 mT, deixando massa sobrando para mais anéis.
 
 **Custo:** cada arranjo leva de milissegundos a ~1 s, conforme o tamanho.
 Varreduras em número de anéis são quase de graça, porque são calculadas por

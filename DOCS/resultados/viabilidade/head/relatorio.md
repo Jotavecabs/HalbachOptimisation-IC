@@ -1,6 +1,6 @@
 # Análise de viabilidade — cenário `head`
 
-Gerado em 22/10/2026 15:12. 1681 arranjos simulados em 72 s (modelo de campo: `cuboid`).
+Gerado em 22/10/2026 15:27. 1914 arranjos simulados em 53 s (modelo de campo: `cuboid`).
 
 Arquivos: figuras em `figuras/`, dados de todos os arranjos em `dados/` (CSV, abre no Excel).
 
@@ -48,24 +48,25 @@ Todos os gráficos partem deste arranjo e mudam um ou dois parâmetros de cada v
 
 | Parâmetro | Valor |
 |---|---|
-| Número de anéis | 23 |
-| Espaçamento entre anéis | 22 mm |
+| Número de anéis | 47 |
+| Espaçamento entre anéis | 16 mm |
 | Raio livre interno (bore) | 140 mm |
-| Camadas de ímãs por anel | 2 |
+| Camadas de ímãs por anel | 1 |
 | Aresta do cubo | 12 mm |
 | Remanência Br | 1,3 T |
 | Diâmetro do DSV | 200 mm |
 
 | Resultado | Valor |
 |---|---|
-| Campo B0 no centro | 66,82 mT |
-| Inomogeneidade no DSV | 54 112 ppm |
-| Massa dos ímãs | 31,89 kg |
-| Número de ímãs | 2 461  |
-| Comprimento | 496 mm |
-| Diâmetro externo | 356 mm |
-| Campo por massa | 2,09 mT/kg |
-| Frequência de Larmor (¹H) | 2,84 MHz |
+| Campo B0 no centro | 50,31 mT |
+| Inomogeneidade no DSV | 7 098 ppm |
+| Homogeneidade | 99,29 % |
+| Massa dos ímãs | 30,46 kg |
+| Número de ímãs | 2 350  |
+| Comprimento | 748 mm |
+| Diâmetro externo | 314 mm |
+| Campo por massa | 1,65 mT/kg |
+| Frequência de Larmor (¹H) | 2,14 MHz |
 
 ### Campo da configuração de referência
 
@@ -84,7 +85,8 @@ Um arranjo é **viável** quando atende a todos estes requisitos (valores do `co
 * campo no centro entre 49 e 51 mT;
 * diâmetro livre (bore) de pelo menos 270 mm (espaço para bobinas de gradiente e RF);
 * massa de ímãs de no máximo 40,0 kg;
-* a homogeneidade **não** entra no critério (ver seção 9);
+* comprimento entre 54 e 76 cm;
+* a **homogeneidade é o objetivo**, não um corte: entre os arranjos que atendem aos requisitos acima, o melhor é o mais próximo de 100 % (seção 8);
 * geometria possível: os ímãs não se sobrepõem e o DSV cabe dentro do bore.
 
 ## 4. Como ler os gráficos
@@ -95,7 +97,7 @@ compartilham o eixo horizontal (o parâmetro variado):
 | Painel | O que mostra | O que é bom |
 |---|---|---|
 | Campo B0 no centro | campo produzido; faixa cinza = alvo ± tolerância | estar dentro da faixa cinza |
-| Inomogeneidade no DSV | variação do campo dentro da esfera, em ppm, **escala log** | quanto menor, melhor |
+| Inomogeneidade no DSV | variação do campo dentro da esfera, em ppm, **escala log** (homogeneidade = 100 % − ppm/10 000) | quanto menor, melhor |
 | Massa dos ímãs | massa de NdFeB; linha vermelha = limite | ficar abaixo da linha |
 | Campo por massa | mT obtidos por kg de ímã | quanto maior, mais eficiente |
 
@@ -108,13 +110,16 @@ um arranjo. Os quatro painéis são:
 * **campo B0:** a **linha branca contínua** é o caminho dos arranjos que dão
   exatamente o campo alvo e as tracejadas, a tolerância. Qualquer ponto sobre
   a linha branca é um candidato;
-* **inomogeneidade:** cores claras = melhor; as linhas pretas marcam 1 000,
-  10 000, 100 000 ppm...;
+* **inomogeneidade:** cores claras = melhor (mais perto de 100 % de
+  homogeneidade); as linhas pretas marcam 1 000 ppm (99,9 %), 10 000 ppm
+  (99 %), 100 000 ppm (90 %)...;
 * **massa:** a linha vermelha é o limite de massa;
 * **viabilidade:** verde = atende a todos os critérios. Nas outras cores, o
   nome do critério que falha (quando falham vários, aparece o mais grave).
 
-A **estrela** marca a configuração de referência.
+A **estrela** marca a configuração de referência. As linhas **azuis
+traço-ponto** marcam os limites de comprimento (quando o mapa os cruza): os
+arranjos aceitáveis ficam entre elas.
 
 Para achar um bom projeto num mapa: siga a linha branca do painel de campo e
 procure, ao longo dela, a região mais clara no painel de inomogeneidade que
@@ -126,15 +131,15 @@ ainda esteja abaixo da linha vermelha de massa.
 
 ![linha_n_rings_por_n_bands](figuras/linha_n_rings_por_n_bands.png)
 
-**O que varia:** número de anéis de 1 a 45; cada curva é um valor de camadas de ímãs por anel. O resto fica igual à referência.
+**O que varia:** número de anéis de 1 a 61; cada curva é um valor de camadas de ímãs por anel. O resto fica igual à referência.
 
 **Por que acontece:** Mais anéis deixam o cilindro mais comprido. Um cilindro Halbach infinito tem campo perfeitamente uniforme; as imperfeições vêm principalmente das pontas. Com mais anéis as pontas se afastam do DSV: o campo no centro cresce até saturar e a homogeneidade melhora, mas a massa cresce linearmente.
 
 **O que os números mostram:**
 
-* **Camadas de ímãs por anel = 1:** B0 vai de 4,1 a 36,8 mT; fica sempre abaixo do alvo de 50 mT nesta faixa; a melhor homogeneidade é 1 634 ppm, com número de anéis = 45; massa de 0,6 a 29,2 kg.
-* **Camadas de ímãs por anel = 2:** B0 vai de 7,2 a 68,9 mT; atinge o alvo de 50 mT em número de anéis ≈ 9; a melhor homogeneidade é 2 044 ppm, com número de anéis = 45; massa de 1,4 a 62,4 kg.
-* **Camadas de ímãs por anel = 3:** B0 vai de 9,7 a 97,4 mT; atinge o alvo de 50 mT em número de anéis ≈ 5; a melhor homogeneidade é 2 534 ppm, com número de anéis = 45; massa de 2,2 a 99,7 kg.
+* **Camadas de ímãs por anel = 1:** B0 vai de 4,1 a 50,5 mT; atinge o alvo de 50 mT em número de anéis ≈ 39; a melhor homogeneidade é 99,83 % (1 729 ppm), com número de anéis = 61; massa de 0,6 a 39,5 kg.
+* **Camadas de ímãs por anel = 2:** B0 vai de 7,2 a 94,7 mT; atinge o alvo de 50 mT em número de anéis ≈ 7; a melhor homogeneidade é 99,78 % (2 189 ppm), com número de anéis = 61; massa de 1,4 a 84,6 kg.
+* **Camadas de ímãs por anel = 3:** B0 vai de 9,7 a 133,9 mT; atinge o alvo de 50 mT em número de anéis ≈ 5; a melhor homogeneidade é 99,73 % (2 721 ppm), com número de anéis = 61; massa de 2,2 a 135,2 kg.
 
 ### 5.2 Raio livre interno (bore) (curvas: camadas de ímãs por anel)
 
@@ -146,9 +151,9 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* **Camadas de ímãs por anel = 1:** B0 vai de 21,8 a 47,4 mT; fica sempre abaixo do alvo de 50 mT nesta faixa; a melhor homogeneidade é 40 026 ppm, com raio livre interno (bore) = 125 mm; massa de 11,3 a 23,0 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
-* **Camadas de ímãs por anel = 2:** B0 vai de 41,3 a 87,1 mT; atinge o alvo de 50 mT em raio livre interno (bore) ≈ 185,1 mm; a melhor homogeneidade é 45 356 ppm, com raio livre interno (bore) = 125 mm; massa de 24,7 a 48,0 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
-* **Camadas de ímãs por anel = 3:** B0 vai de 58,8 a 121,0 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 50 725 ppm, com raio livre interno (bore) = 120 mm; massa de 40,2 a 75,1 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
+* **Camadas de ímãs por anel = 1:** B0 vai de 32,0 a 65,8 mT; atinge o alvo de 50 mT em raio livre interno (bore) ≈ 141,1 mm; a melhor homogeneidade é 99,49 % (5 136 ppm), com raio livre interno (bore) = 125 mm; massa de 23,1 a 46,9 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
+* **Camadas de ímãs por anel = 2:** B0 vai de 60,9 a 121,1 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,36 % (6 408 ppm), com raio livre interno (bore) = 125 mm; massa de 50,6 a 98,1 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
+* **Camadas de ímãs por anel = 3:** B0 vai de 87,4 a 168,8 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,24 % (7 561 ppm), com raio livre interno (bore) = 120 mm; massa de 82,2 a 153,5 kg; 1 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
 
 ### 5.3 Espaçamento entre anéis (curvas: número de anéis)
 
@@ -160,10 +165,10 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* **Número de anéis = 11:** B0 vai de 36,1 a 68,3 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 26 mm; a melhor homogeneidade é 100 399 ppm, com espaçamento entre anéis = 40 mm; massa de 15,3 a 15,3 kg.
-* **Número de anéis = 17:** B0 vai de 37,5 a 89,5 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 29,4 mm; a melhor homogeneidade é 22 119 ppm, com espaçamento entre anéis = 40 mm; massa de 23,6 a 23,6 kg.
-* **Número de anéis = 23:** B0 vai de 37,8 a 101,5 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 30 mm; a melhor homogeneidade é 8 964 ppm, com espaçamento entre anéis = 36 mm; massa de 31,9 a 31,9 kg.
-* **Número de anéis = 29:** B0 vai de 37,9 a 108,1 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 30,3 mm; a melhor homogeneidade é 4 264 ppm, com espaçamento entre anéis = 33 mm; massa de 40,2 a 40,2 kg.
+* **Número de anéis = 31:** B0 vai de 20,2 a 59,0 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 15,7 mm; a melhor homogeneidade é 99,63 % (3 689 ppm), com espaçamento entre anéis = 30 mm; massa de 20,1 a 20,1 kg.
+* **Número de anéis = 39:** B0 vai de 20,3 a 60,7 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 16 mm; a melhor homogeneidade é 99,84 % (1 599 ppm), com espaçamento entre anéis = 27 mm; massa de 25,3 a 25,3 kg.
+* **Número de anéis = 47:** B0 vai de 20,3 a 61,5 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 16,1 mm; a melhor homogeneidade é 99,921 % (788 ppm), com espaçamento entre anéis = 26 mm; massa de 30,5 a 30,5 kg.
+* **Número de anéis = 55:** B0 vai de 20,3 a 61,8 mT; atinge o alvo de 50 mT em espaçamento entre anéis ≈ 16,2 mm; a melhor homogeneidade é 99,954 % (463 ppm), com espaçamento entre anéis = 24 mm; massa de 35,6 a 35,6 kg.
 
 ### 5.4 Aresta do cubo (curvas: camadas de ímãs por anel)
 
@@ -175,8 +180,8 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* **Camadas de ímãs por anel = 1:** B0 vai de 8,6 a 98,3 mT; atinge o alvo de 50 mT em aresta do cubo ≈ 14,1 mm; a melhor homogeneidade é 44 862 ppm, com aresta do cubo = 6 mm; massa de 3,4 a 44,2 kg.
-* **Camadas de ímãs por anel = 2:** B0 vai de 16,4 a 178,2 mT; atinge o alvo de 50 mT em aresta do cubo ≈ 10,3 mm; a melhor homogeneidade é 48 852 ppm, com aresta do cubo = 6 mm; massa de 7,0 a 98,0 kg.
+* **Camadas de ímãs por anel = 1:** B0 vai de 12,0 a 78,3 mT; atinge o alvo de 50 mT em aresta do cubo ≈ 12 mm; a melhor homogeneidade é 99,34 % (6 576 ppm), com aresta do cubo = 6 mm; massa de 6,9 a 48,8 kg; 5 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
+* **Camadas de ímãs por anel = 2:** B0 vai de 23,1 a 145,2 mT; atinge o alvo de 50 mT em aresta do cubo ≈ 8,72 mm; a melhor homogeneidade é 99,25 % (7 472 ppm), com aresta do cubo = 6 mm; massa de 14,3 a 105,9 kg; 5 ponto(s) impossível(is) (geometria ou DSV maior que o bore).
 
 ### 5.5 Remanência Br
 
@@ -188,7 +193,7 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* **Configuração de referência:** B0 vai de 56,5 a 74,5 mT; fica sempre acima do alvo de 50 mT nesta faixa; a inomogeneidade não muda (54 112 ppm); massa de 31,9 a 31,9 kg.
+* **Configuração de referência:** B0 vai de 42,6 a 56,1 mT; atinge o alvo de 50 mT em remanência Br ≈ 1,29 T; a inomogeneidade não muda (7 098 ppm); massa de 30,5 a 30,5 kg.
 
 ### 5.6 Diâmetro do DSV (curvas: número de anéis)
 
@@ -200,11 +205,10 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* **Número de anéis = 11:** B0 vai de 55,3 a 55,3 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 19 864 ppm, com diâmetro do DSV = 40 mm; massa de 15,3 a 15,3 kg.
-* **Número de anéis = 17:** B0 vai de 63,8 a 63,8 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 6 237 ppm, com diâmetro do DSV = 40 mm; massa de 23,6 a 23,6 kg.
-* **Número de anéis = 23:** B0 vai de 66,8 a 66,8 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 2 034 ppm, com diâmetro do DSV = 40 mm; massa de 31,9 a 31,9 kg.
-* **Número de anéis = 29:** B0 vai de 68,0 a 68,0 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 736 ppm, com diâmetro do DSV = 40 mm; massa de 40,2 a 40,2 kg.
-* **Número de anéis = 35:** B0 vai de 68,5 a 68,5 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 297 ppm, com diâmetro do DSV = 40 mm; massa de 48,5 a 48,5 kg.
+* **Número de anéis = 23:** B0 vai de 47,2 a 47,2 mT; fica sempre abaixo do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,39 % (6 093 ppm), com diâmetro do DSV = 40 mm; massa de 14,9 a 14,9 kg.
+* **Número de anéis = 35:** B0 vai de 49,7 a 49,7 mT; fica sempre abaixo do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,89 % (1 133 ppm), com diâmetro do DSV = 40 mm; massa de 22,7 a 22,7 kg.
+* **Número de anéis = 47:** B0 vai de 50,3 a 50,3 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,973 % (274 ppm), com diâmetro do DSV = 40 mm; massa de 30,5 a 30,5 kg.
+* **Número de anéis = 59:** B0 vai de 50,5 a 50,5 mT; fica sempre acima do alvo de 50 mT nesta faixa; a melhor homogeneidade é 99,9917 % (83 ppm), com diâmetro do DSV = 40 mm; massa de 38,2 a 38,2 kg.
 
 ## 6. Mapas de calor: dois parâmetros ao mesmo tempo
 
@@ -212,33 +216,33 @@ ainda esteja abaixo da linha vermelha de massa.
 
 ![mapa_n_rings_x_bore_radius_mm](figuras/mapa_n_rings_x_bore_radius_mm.png)
 
-**O que varia:** número de anéis (eixo horizontal, 5 a 45) e raio livre interno (bore) (eixo vertical, 100 mm a 220 mm).
+**O que varia:** número de anéis (eixo horizontal, 15 a 61) e raio livre interno (bore) (eixo vertical, 100 mm a 220 mm).
 
 **Por que acontece:** *Número de anéis:* Mais anéis deixam o cilindro mais comprido. Um cilindro Halbach infinito tem campo perfeitamente uniforme; as imperfeições vêm principalmente das pontas. Com mais anéis as pontas se afastam do DSV: o campo no centro cresce até saturar e a homogeneidade melhora, mas a massa cresce linearmente. *Raio livre interno (bore):* Um anel maior comporta mais ímãs (N cresce com o raio), mas cada ímã fica mais longe do centro e o campo de um dipolo cai com 1/r³. O saldo é um campo que cai aproximadamente com 1/r². Em compensação, o DSV fica relativamente menor dentro do anel, o que favorece a homogeneidade no plano transversal.
 
 **O que os números mostram:**
 
-* O campo no centro varia de 15,3 a 88,3 mT no plano analisado.
-* 29 de 525 arranjos (5,5 %) ficam dentro de 50 ± 1 mT.
-* Menor inomogeneidade do mapa: 1 891 ppm, com número de anéis = 45 e raio livre interno (bore) = 135 mm (B0 = 70,7 mT, 60,1 kg).
-* **Melhor arranjo viável:** número de anéis = 21, raio livre interno (bore) = 185 mm → B0 = 49,1 mT, 110 267 ppm, 37,3 kg.
-* Classificação: viável 8; campo fora do alvo 169; massa acima do limite 201; bore abaixo do mínimo 126; geometria impossível 21.
+* O campo no centro varia de 21,3 a 65,9 mT no plano analisado.
+* 31 de 600 arranjos (5,2 %) ficam dentro de 50 ± 1 mT.
+* Melhor homogeneidade do mapa: 99,86 % (1 366 ppm), com número de anéis = 61 e raio livre interno (bore) = 125 mm (B0 = 56,3 mT, 35,6 kg).
+* **Melhor arranjo viável:** número de anéis = 47, raio livre interno (bore) = 140 mm → B0 = 50,3 mT, homogeneidade 99,29 % (7 098 ppm), 30,5 kg, 74,8 cm.
+* Classificação: viável 7; campo fora do alvo 100; comprimento fora da faixa 218; massa acima do limite 107; bore abaixo do mínimo 144; geometria impossível 24.
 
 ### 6.2 Espaçamento entre anéis × Número de anéis
 
 ![mapa_ring_spacing_mm_x_n_rings](figuras/mapa_ring_spacing_mm_x_n_rings.png)
 
-**O que varia:** espaçamento entre anéis (eixo horizontal, 13 mm a 40 mm) e número de anéis (eixo vertical, 5 a 41).
+**O que varia:** espaçamento entre anéis (eixo horizontal, 13 mm a 40 mm) e número de anéis (eixo vertical, 15 a 61).
 
 **Por que acontece:** *Espaçamento entre anéis:* Com o número de anéis fixo, espaçar mais deixa o ímã mais comprido (pontas mais longe do DSV) mas dilui o material: há menos ímãs por metro, então o campo no centro cai. O espaçamento mínimo é a aresta do cubo mais a folga axial. *Número de anéis:* Mais anéis deixam o cilindro mais comprido. Um cilindro Halbach infinito tem campo perfeitamente uniforme; as imperfeições vêm principalmente das pontas. Com mais anéis as pontas se afastam do DSV: o campo no centro cresce até saturar e a homogeneidade melhora, mas a massa cresce linearmente.
 
 **O que os números mostram:**
 
-* O campo no centro varia de 27,7 a 113,6 mT no plano analisado.
-* 19 de 532 arranjos (3,6 %) ficam dentro de 50 ± 1 mT.
-* Menor inomogeneidade do mapa: 1 264 ppm, com espaçamento entre anéis = 28 mm e número de anéis = 41 (B0 = 54,2 mT, 56,9 kg).
-* **Melhor arranjo viável:** espaçamento entre anéis = 30 mm, número de anéis = 27 → B0 = 50,3 mT, 6 710 ppm, 37,4 kg.
-* Classificação: viável 12; campo fora do alvo 324; massa acima do limite 196.
+* O campo no centro varia de 20,0 a 62,0 mT no plano analisado.
+* 20 de 672 arranjos (3,0 %) ficam dentro de 50 ± 1 mT.
+* Melhor homogeneidade do mapa: 99,967 % (335 ppm), com espaçamento entre anéis = 23 mm e número de anéis = 61 (B0 = 35,2 mT, 39,5 kg).
+* **Melhor arranjo viável:** espaçamento entre anéis = 16 mm, número de anéis = 47 → B0 = 50,3 mT, homogeneidade 99,29 % (7 098 ppm), 30,5 kg, 74,8 cm.
+* Classificação: viável 7; campo fora do alvo 124; comprimento fora da faixa 541.
 
 ### 6.3 Aresta do cubo × Raio livre interno (bore)
 
@@ -250,11 +254,11 @@ ainda esteja abaixo da linha vermelha de massa.
 
 **O que os números mostram:**
 
-* O campo no centro varia de 10,0 a 229,6 mT no plano analisado.
+* O campo no centro varia de 7,6 a 100,9 mT no plano analisado.
 * 6 de 375 arranjos (1,6 %) ficam dentro de 50 ± 1 mT.
-* Menor inomogeneidade do mapa: 43 372 ppm, com aresta do cubo = 6 mm e raio livre interno (bore) = 130 mm (B0 = 17,7 mT, 6,6 kg).
-* **Melhor arranjo viável:** aresta do cubo = 11 mm, raio livre interno (bore) = 155 mm → B0 = 50,8 mT, 63 283 ppm, 28,9 kg.
-* Classificação: viável 2; campo fora do alvo 118; massa acima do limite 150; bore abaixo do mínimo 90; geometria impossível 15.
+* Melhor homogeneidade do mapa: 99,50 % (5 029 ppm), com aresta do cubo = 10 mm e raio livre interno (bore) = 125 mm (B0 = 39,1 mT, 18,7 kg).
+* **Melhor arranjo viável:** aresta do cubo = 12 mm, raio livre interno (bore) = 140 mm → B0 = 50,3 mT, homogeneidade 99,29 % (7 098 ppm), 30,5 kg, 74,8 cm.
+* Classificação: viável 1; campo fora do alvo 123; massa acima do limite 56; bore abaixo do mínimo 60; geometria impossível 135.
 
 ## 7. Compromisso entre massa e homogeneidade
 
@@ -266,20 +270,20 @@ ainda esteja abaixo da linha vermelha de massa.
 
 ## 8. Arranjos viáveis
 
-22 arranjos simulados atendem a todos os critérios. Os 10 mais homogêneos:
+14 arranjos simulados atendem a todos os requisitos (homogeneidade medida no DSV de 200 mm do cenário). Como a homogeneidade é o objetivo (quanto mais perto de 100 %, melhor), eles estão ordenados por ela. Os 10 melhores:
 
-| # | Anéis | Espaç. (mm) | Bore Ø (mm) | Camadas | Cubo (mm) | Br (T) | B0 (mT) | Inomog. (ppm) | Massa (kg) | Comprim. (mm) | Ø ext. (mm) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 27 | 30 | 280 | 2 | 12 | 1,30 | 50,3 | 6 710 | 37,4 | 792 | 356 |
-| 2 | 25 | 30 | 280 | 2 | 12 | 1,30 | 50,2 | 9 566 | 34,7 | 732 | 356 |
-| 3 | 23 | 30 | 280 | 2 | 12 | 1,30 | 50,1 | 14 064 | 31,9 | 672 | 356 |
-| 4 | 21 | 30 | 280 | 2 | 12 | 1,30 | 49,8 | 21 295 | 29,1 | 612 | 356 |
-| 5 | 19 | 30 | 280 | 2 | 12 | 1,30 | 49,5 | 33 154 | 26,3 | 552 | 356 |
-| 6 | 23 | 22 | 280 | 1 | 14 | 1,30 | 49,1 | 48 424 | 20,8 | 498 | 320 |
-| 7 | 17 | 30 | 280 | 2 | 12 | 1,30 | 49,0 | 52 928 | 23,6 | 492 | 356 |
-| 8 | 17 | 29 | 280 | 2 | 12 | 1,30 | 50,6 | 60 484 | 23,6 | 476 | 356 |
-| 9 | 23 | 22 | 310 | 2 | 11 | 1,30 | 50,8 | 63 283 | 28,9 | 495 | 380 |
-| 10 | 23 | 22 | 320 | 2 | 11 | 1,30 | 49,0 | 66 467 | 29,6 | 495 | 390 |
+| # | Anéis | Espaç. (mm) | Bore Ø (mm) | Camadas | Cubo (mm) | Br (T) | B0 (mT) | Homogeneidade | Inomog. (ppm) | Massa (kg) | Comprim. (cm) | Ø ext. (mm) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 47 | 16 | 280 | 1 | 12 | 1,30 | 50,3 | 99,29 % | 7 098 | 30,5 | 74,8 | 314 |
+| 2 | 46 | 16 | 280 | 1 | 12 | 1,30 | 50,3 | 99,21 % | 7 938 | 29,8 | 73,2 | 314 |
+| 3 | 45 | 16 | 280 | 1 | 12 | 1,30 | 50,3 | 99,11 % | 8 893 | 29,2 | 71,6 | 314 |
+| 4 | 44 | 16 | 280 | 1 | 12 | 1,30 | 50,2 | 99,00 % | 9 977 | 28,5 | 70,0 | 314 |
+| 5 | 43 | 16 | 280 | 1 | 12 | 1,30 | 50,2 | 98,88 % | 11 212 | 27,9 | 68,4 | 314 |
+| 6 | 42 | 16 | 280 | 1 | 12 | 1,30 | 50,1 | 98,74 % | 12 620 | 27,2 | 66,8 | 314 |
+| 7 | 41 | 16 | 280 | 1 | 12 | 1,30 | 50,1 | 98,58 % | 14 230 | 26,6 | 65,2 | 314 |
+| 8 | 40 | 16 | 280 | 1 | 12 | 1,30 | 50,0 | 98,39 % | 16 071 | 25,9 | 63,6 | 314 |
+| 9 | 39 | 16 | 280 | 1 | 12 | 1,30 | 50,0 | 98,18 % | 18 183 | 25,3 | 62,0 | 314 |
+| 10 | 38 | 16 | 280 | 1 | 12 | 1,30 | 49,9 | 97,94 % | 20 607 | 24,6 | 60,4 | 314 |
 
 ## 9. Limitações e próximos passos
 
@@ -293,7 +297,7 @@ ainda esteja abaixo da linha vermelha de massa.
   homogeneidade e normalmente é corrigido com shimming.
 * **Temperatura:** o NdFeB perde ~0,1 %/°C de Br. O campo (e a frequência de
   Larmor) varia com a temperatura, mas a homogeneidade em ppm não.
-* **Critério de homogeneidade:** por padrão a homogeneidade **não entra** no
-  critério de viabilidade, porque com anéis iguais nenhum arranjo chegaria a
-  valores típicos de imagem. Para usar um limite, defina `ppm_maximo` no
-  `viabilidade.toml`.
+* **Homogeneidade como objetivo:** a homogeneidade não é um corte de
+  viabilidade; os arranjos viáveis são ordenados por ela (o mais perto de
+  100 % vence). Para exigir um valor mínimo, defina `ppm_maximo` no
+  `viabilidade.toml` (ex.: 99,9 % = 1000 ppm).

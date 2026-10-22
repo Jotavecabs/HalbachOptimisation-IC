@@ -27,10 +27,12 @@ STATUS_COLORS = {
     0: "#2ca02c",  # viável
     1: "#ffdd57",  # campo fora
     2: "#ff9f40",  # ppm
-    3: "#d62728",  # massa
-    4: "#9467bd",  # bore
-    5: "#7f7f7f",  # geometria
+    3: "#8fd3f4",  # comprimento
+    4: "#d62728",  # massa
+    5: "#9467bd",  # bore
+    6: "#7f7f7f",  # geometria
 }
+N_STATUS = len(STATUS_COLORS)
 
 LINE_PANELS = ("b0_mT", "ppm", "mass_kg", "efficiency_mT_per_kg")
 
@@ -139,7 +141,7 @@ def plot_map(m: MapData, base, criteria: Criteria, scenario: str) -> Figure:
         if decades:
             cs = ax.contour(xx, yy, ppm, levels=decades, colors="k", linewidths=0.8)
             ax.clabel(cs, fmt=lambda v: f"{v:,.0f}".replace(",", " "), fontsize=8)
-    ax.set_title("Inomogeneidade no DSV (mais claro = melhor)")
+    ax.set_title("Inomogeneidade no DSV (mais claro = mais perto de 100 %)")
 
     # massa
     ax = axes[1, 0]
@@ -155,18 +157,27 @@ def plot_map(m: MapData, base, criteria: Criteria, scenario: str) -> Figure:
     ax = axes[1, 1]
     codes = m.codes(criteria)
     present = sorted(set(codes.flat))
-    cmap = colors.ListedColormap([STATUS_COLORS[c] for c in range(6)])
-    ax.pcolormesh(xe, ye, codes, cmap=cmap, norm=colors.BoundaryNorm(np.arange(-0.5, 6.5), 6), shading="flat")
+    cmap = colors.ListedColormap([STATUS_COLORS[c] for c in range(N_STATUS)])
+    ax.pcolormesh(xe, ye, codes, cmap=cmap, norm=colors.BoundaryNorm(np.arange(-0.5, N_STATUS + 0.5), N_STATUS),
+                  shading="flat")
     ax.legend(handles=[Patch(color=STATUS_COLORS[c], label=STATUS_LABELS[c]) for c in present],
               loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, fontsize=8)
     ax.set_title("Viabilidade (primeiro critério que falha)")
 
+    length = m.metric("length_mm")
+    length_levels = [v for v in (criteria.min_length_mm, criteria.max_length_mm)
+                     if v is not None and np.nanmin(length) < v < np.nanmax(length)]
     for ax in axes.flat:
         ax.set_xlabel(PARAMS[sweep.x].axis_label())
         ax.set_ylabel(PARAMS[sweep.y].axis_label())
+        if length_levels:
+            cs = ax.contour(xx, yy, length, levels=length_levels, colors="deepskyblue", linewidths=1.5,
+                            linestyles="-.")
+            ax.clabel(cs, fmt=lambda v: f"{v / 10:g} cm", fontsize=8)
         _mark_base(ax, m, base)
+    extra = "; azul traço-ponto = limites de comprimento" if length_levels else ""
     fig.suptitle(f"{scenario}: {PARAMS[sweep.x].lower} × {PARAMS[sweep.y].lower}\n"
-                 "(estrela = configuração de referência; células cinza = geometria impossível)", fontsize=11)
+                 f"(estrela = configuração de referência; células cinza = geometria impossível{extra})", fontsize=11)
     return fig
 
 
@@ -185,7 +196,7 @@ def plot_tradeoff(data: AnalysisData) -> Figure:
     sc = ax.scatter(mass, ppm, c=b0, cmap="viridis", s=12, alpha=0.7)
     fig.colorbar(sc, ax=ax, label=METRICS["b0_mT"].axis_label())
     ax.scatter(mass[on_target], ppm[on_target], s=40, facecolors="none", edgecolors="tab:red", linewidths=1.2,
-               label="viável (campo no alvo, massa e bore ok)")
+               label="viável (campo, massa, bore e comprimento ok)")
     base = data.base
     if base.status == "ok":
         ax.plot(base.metrics["mass_kg"], base.metrics["ppm"], marker="*", ms=16, mec="k", mfc="white",

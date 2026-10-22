@@ -92,9 +92,14 @@ def test_viability_code(base) -> None:
     b0 = r.metrics["b0_mT"]
     on_target = dataclasses.replace(crit, target_mT=b0)
     assert code == 1 and viability_code(r, on_target) == 0
-    assert viability_code(r, dataclasses.replace(on_target, max_mass_kg=1)) == 3
-    assert viability_code(r, dataclasses.replace(on_target, min_bore_diameter_mm=500)) == 4
+    assert viability_code(r, dataclasses.replace(on_target, max_mass_kg=1)) == 4
+    assert viability_code(r, dataclasses.replace(on_target, min_bore_diameter_mm=500)) == 5
     assert viability_code(r, dataclasses.replace(on_target, max_ppm=1)) == 2
+    length = r.metrics["length_mm"]  # 9 anéis × 22 mm -> 188 mm
+    assert viability_code(r, dataclasses.replace(on_target, min_length_mm=length + 1)) == 3
+    assert viability_code(r, dataclasses.replace(on_target, max_length_mm=length - 1)) == 3
+    assert viability_code(r, dataclasses.replace(on_target, min_length_mm=length - 1, max_length_mm=length + 1)) == 0
+    assert r.metrics["homogeneity_pct"] == pytest.approx(100 - r.metrics["ppm"] / 1e4)
 
 
 def test_default_plan_loads_both_scenarios() -> None:
@@ -102,6 +107,7 @@ def test_default_plan_loads_both_scenarios() -> None:
         plan = load_plan(load_config(name))
         assert plan.lines and plan.maps
         assert plan.criteria.target_mT == pytest.approx(50)
+        assert (plan.criteria.min_length_mm, plan.criteria.max_length_mm) == (540, 760)
 
 
 def test_plan_rejects_unknown_parameter(tmp_path: Path) -> None:
@@ -131,3 +137,15 @@ def test_small_analysis_and_report(base, tmp_path: Path) -> None:
                  "compromisso_massa_homogeneidade.png", "referencia_cortes.png"):
         assert (tmp_path / "figuras" / name).exists()
     assert (tmp_path / "dados" / "todos_os_arranjos.csv").read_text().count("\n") > 10
+
+
+def test_viable_table_uses_scenario_dsv(base) -> None:
+    """Uma varredura de DSV não pode aparecer como 'arranjo melhor' na tabela de viáveis."""
+    from halbach_ic.viability.report import _viable_table
+
+    crit = Criteria(target_mT=0, tolerance_mT=1e9, min_bore_diameter_mm=0, max_mass_kg=1e9, max_ppm=None)
+    plan = ViabilityPlan("teste", GeneralSettings("dipole", 50, 1), base, crit,
+                         lines=(LineSweep("dsv_diameter_mm", (40.0, 110.0), None, ()),), maps=())
+    data = run_analysis(plan, log=lambda *_: None)
+    table = "\n".join(_viable_table(data))
+    assert "1 arranjos simulados" in table

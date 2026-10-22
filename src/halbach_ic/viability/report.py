@@ -54,6 +54,15 @@ def param_value(name: str, value: float) -> str:
     return f"{text} {info.unit}".strip()
 
 
+def pct(ppm: float) -> str:
+    """Homogeneidade em % a partir da inomogeneidade em ppm (100 % = perfeito)."""
+    if not math.isfinite(ppm):
+        return "—"
+    value = 100 - ppm / 1e4
+    digits = 2 if ppm >= 1000 else 3 if ppm >= 100 else 4
+    return num(value, digits) + " %"
+
+
 def crossings(x: np.ndarray, y: np.ndarray, level: float) -> list[float]:
     """Valores de x onde y cruza ``level`` (interpolação linear)."""
     out = []
@@ -97,7 +106,7 @@ def line_observations(line: LineData, criteria: Criteria) -> list[str]:
                 parts.append(f"a inomogeneidade não muda ({num(np.nanmin(ppm), 0)} ppm)")
             else:
                 i = int(np.nanargmin(ppm))
-                parts.append(f"a melhor homogeneidade é {num(ppm[i], 0)} ppm, com "
+                parts.append(f"a melhor homogeneidade é {pct(ppm[i])} ({num(ppm[i], 0)} ppm), com "
                              f"{x_info.lower} = {param_value(sweep.x, x[i])}")
         parts.append(f"massa de {num(np.nanmin(mass))} a {num(np.nanmax(mass))} kg")
         invalid = int((~valid).sum())
@@ -124,7 +133,7 @@ def map_observations(m: MapData, criteria: Criteria) -> list[str]:
     notes.append(f"{len(on_target)} de {len(flat)} arranjos ({num(100 * len(on_target) / len(flat))} %) ficam "
                  f"dentro de {num(criteria.target_mT, 0)} ± {num(criteria.tolerance_mT, 0)} mT.")
     best = min(ok, key=lambda r: r.metrics["ppm"])
-    notes.append(f"Menor inomogeneidade do mapa: {num(best.metrics['ppm'], 0)} ppm, com "
+    notes.append(f"Melhor homogeneidade do mapa: {pct(best.metrics['ppm'])} ({num(best.metrics['ppm'], 0)} ppm), com "
                  f"{PARAMS[sweep.x].lower} = {param_value(sweep.x, getattr(best.params, sweep.x))} e "
                  f"{PARAMS[sweep.y].lower} = {param_value(sweep.y, getattr(best.params, sweep.y))} "
                  f"(B0 = {num(best.metrics['b0_mT'])} mT, {num(best.metrics['mass_kg'])} kg).")
@@ -134,7 +143,8 @@ def map_observations(m: MapData, criteria: Criteria) -> list[str]:
         notes.append(f"**Melhor arranjo viável:** {PARAMS[sweep.x].lower} = "
                      f"{param_value(sweep.x, getattr(bv.params, sweep.x))}, {PARAMS[sweep.y].lower} = "
                      f"{param_value(sweep.y, getattr(bv.params, sweep.y))} → B0 = {num(bv.metrics['b0_mT'])} mT, "
-                     f"{num(bv.metrics['ppm'], 0)} ppm, {num(bv.metrics['mass_kg'])} kg.")
+                     f"homogeneidade {pct(bv.metrics['ppm'])} ({num(bv.metrics['ppm'], 0)} ppm), "
+                     f"{num(bv.metrics['mass_kg'])} kg, {num(bv.metrics['length_mm'] / 10, 1)} cm.")
     else:
         notes.append("**Nenhum arranjo deste mapa atende a todos os critérios.** O mapa de viabilidade mostra "
                      "qual critério falha em cada região.")
@@ -196,7 +206,7 @@ compartilham o eixo horizontal (o parâmetro variado):
 | Painel | O que mostra | O que é bom |
 |---|---|---|
 | Campo B0 no centro | campo produzido; faixa cinza = alvo ± tolerância | estar dentro da faixa cinza |
-| Inomogeneidade no DSV | variação do campo dentro da esfera, em ppm, **escala log** | quanto menor, melhor |
+| Inomogeneidade no DSV | variação do campo dentro da esfera, em ppm, **escala log** (homogeneidade = 100 % − ppm/10 000) | quanto menor, melhor |
 | Massa dos ímãs | massa de NdFeB; linha vermelha = limite | ficar abaixo da linha |
 | Campo por massa | mT obtidos por kg de ímã | quanto maior, mais eficiente |
 
@@ -209,13 +219,16 @@ um arranjo. Os quatro painéis são:
 * **campo B0:** a **linha branca contínua** é o caminho dos arranjos que dão
   exatamente o campo alvo e as tracejadas, a tolerância. Qualquer ponto sobre
   a linha branca é um candidato;
-* **inomogeneidade:** cores claras = melhor; as linhas pretas marcam 1 000,
-  10 000, 100 000 ppm...;
+* **inomogeneidade:** cores claras = melhor (mais perto de 100 % de
+  homogeneidade); as linhas pretas marcam 1 000 ppm (99,9 %), 10 000 ppm
+  (99 %), 100 000 ppm (90 %)...;
 * **massa:** a linha vermelha é o limite de massa;
 * **viabilidade:** verde = atende a todos os critérios. Nas outras cores, o
   nome do critério que falha (quando falham vários, aparece o mais grave).
 
-A **estrela** marca a configuração de referência.
+A **estrela** marca a configuração de referência. As linhas **azuis
+traço-ponto** marcam os limites de comprimento (quando o mapa os cruza): os
+arranjos aceitáveis ficam entre elas.
 
 Para achar um bom projeto num mapa: siga a linha branca do painel de campo e
 procure, ao longo dela, a região mais clara no painel de inomogeneidade que
@@ -235,10 +248,10 @@ LIMITS = """\
   homogeneidade e normalmente é corrigido com shimming.
 * **Temperatura:** o NdFeB perde ~0,1 %/°C de Br. O campo (e a frequência de
   Larmor) varia com a temperatura, mas a homogeneidade em ppm não.
-* **Critério de homogeneidade:** por padrão a homogeneidade **não entra** no
-  critério de viabilidade, porque com anéis iguais nenhum arranjo chegaria a
-  valores típicos de imagem. Para usar um limite, defina `ppm_maximo` no
-  `viabilidade.toml`.
+* **Homogeneidade como objetivo:** a homogeneidade não é um corte de
+  viabilidade; os arranjos viáveis são ordenados por ela (o mais perto de
+  100 % vence). Para exigir um valor mínimo, defina `ppm_maximo` no
+  `viabilidade.toml` (ex.: 99,9 % = 1000 ppm).
 """
 
 
@@ -276,24 +289,29 @@ def _rel(path: str, outdir: Path) -> str:
 
 def _viable_table(data: AnalysisData, limit: int = 10) -> list[str]:
     crit = data.plan.criteria
+    dsv = data.plan.base.dsv_diameter_mm
     seen: dict[ArrayParams, SimResult] = {}
     for r in data.all_results():
-        if viability_code(r, crit) == 0:
+        # o DSV é requisito do cenário, não escolha de projeto: compara todos no mesmo DSV
+        if r.params.dsv_diameter_mm == dsv and viability_code(r, crit) == 0:
             seen[r.params] = r
     if not seen:
         return ["Nenhum dos arranjos simulados atende a todos os critérios ao mesmo tempo. Os mapas de "
                 "viabilidade mostram qual critério falha em cada região; os próximos passos naturais são "
                 "ampliar as faixas das varreduras ou rever os limites."]
     best = sorted(seen.values(), key=lambda r: r.metrics["ppm"])[:limit]
-    lines = [f"{len(seen)} arranjos simulados atendem a todos os critérios. Os {len(best)} mais homogêneos:", "",
-             "| # | Anéis | Espaç. (mm) | Bore Ø (mm) | Camadas | Cubo (mm) | Br (T) | B0 (mT) | Inomog. (ppm) "
-             "| Massa (kg) | Comprim. (mm) | Ø ext. (mm) |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines = [f"{len(seen)} arranjos simulados atendem a todos os requisitos (homogeneidade medida no DSV de "
+             f"{num(dsv, 0)} mm do cenário). Como a homogeneidade é o "
+             f"objetivo (quanto mais perto de 100 %, melhor), eles estão ordenados por ela. Os {len(best)} melhores:",
+             "",
+             "| # | Anéis | Espaç. (mm) | Bore Ø (mm) | Camadas | Cubo (mm) | Br (T) | B0 (mT) | Homogeneidade "
+             "| Inomog. (ppm) | Massa (kg) | Comprim. (cm) | Ø ext. (mm) |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for i, r in enumerate(best, 1):
         p, m = r.params, r.metrics
         lines.append(f"| {i} | {p.n_rings} | {num(p.ring_spacing_mm, 0)} | {num(2 * p.bore_radius_mm, 0)} | "
                      f"{p.n_bands} | {num(p.magnet_size_mm, 0)} | {num(p.remanence_T, 2)} | {num(m['b0_mT'])} | "
-                     f"{num(m['ppm'], 0)} | {num(m['mass_kg'])} | {num(m['length_mm'], 0)} | "
+                     f"{pct(m['ppm'])} | {num(m['ppm'], 0)} | {num(m['mass_kg'])} | {num(m['length_mm'] / 10, 1)} | "
                      f"{num(m['outer_diameter_mm'], 0)} |")
     return lines
 
@@ -346,8 +364,12 @@ def write_report(data: AnalysisData, outdir: Path, log=print) -> Path:
            f"* diâmetro livre (bore) de pelo menos {num(crit.min_bore_diameter_mm, 0)} mm (espaço para "
            "bobinas de gradiente e RF);",
            f"* massa de ímãs de no máximo {num(crit.max_mass_kg)} kg;",
+           *([f"* comprimento entre {num((crit.min_length_mm or 0) / 10, 0)} e "
+              f"{num((crit.max_length_mm or math.inf) / 10, 0)} cm;"]
+             if crit.min_length_mm is not None or crit.max_length_mm is not None else []),
            (f"* inomogeneidade de no máximo {num(crit.max_ppm, 0)} ppm;" if crit.max_ppm is not None else
-            "* a homogeneidade **não** entra no critério (ver seção 9);"),
+            "* a **homogeneidade é o objetivo**, não um corte: entre os arranjos que atendem aos requisitos "
+            "acima, o melhor é o mais próximo de 100 % (seção 8);"),
            "* geometria possível: os ímãs não se sobrepõem e o DSV cabe dentro do bore.", "", READING_GUIDE]
 
     # 5. linhas

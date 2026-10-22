@@ -61,6 +61,12 @@ METRICS: dict[str, MetricInfo] = {
         "(B_máx − B_mín) / B0 × 10⁶ dentro da esfera do DSV. Quanto MENOR, melhor. 1000 ppm = 0,1 %: a "
         "50 mT isso corresponde a 50 µT de variação, ou 2,1 kHz de largura de linha na frequência de Larmor.",
     ),
+    "homogeneity_pct": MetricInfo(
+        "Homogeneidade", "%", False,
+        "100 % − (B_máx − B_mín)/B0 × 100. 100 % seria um campo perfeitamente uniforme; é o objetivo do "
+        "projeto chegar o mais perto possível de 100 %. Conversão: 10 000 ppm = 99 %, 1 000 ppm = 99,9 %, "
+        "100 ppm = 99,99 %.",
+    ),
     "mass_kg": MetricInfo(
         "Massa dos ímãs", "kg", False,
         "Massa total de NdFeB (densidade × volume × número de ímãs). Não inclui a estrutura de suporte.",
@@ -176,6 +182,7 @@ def simulate_group(params: Sequence[ArrayParams], backend: FieldBackend, n_surfa
         results.append(SimResult(p, {
             "b0_mT": b0 * 1e3,
             "ppm": ppm,
+            "homogeneity_pct": 100.0 - ppm / 1e4,
             "mass_kg": mass,
             "n_magnets": float(p.n_rings * ring.total_magnets),
             "length_mm": (p.n_rings - 1) * p.ring_spacing_mm + p.magnet_size_mm,

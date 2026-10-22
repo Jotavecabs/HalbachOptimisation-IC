@@ -65,7 +65,10 @@ class Criteria:
     min_bore_diameter_mm: float
     max_mass_kg: float
     max_ppm: float | None
-    """``None`` = homogeneidade não entra no critério."""
+    """``None`` = homogeneidade não entra no critério (é o objetivo: quanto melhor, melhor)."""
+    min_length_mm: float | None = None
+    max_length_mm: float | None = None
+    """Faixa aceita de comprimento do ímã (``None`` = sem limite)."""
 
 
 @dataclass(frozen=True)
@@ -128,7 +131,8 @@ def load_plan(scenario_cfg: ScenarioConfig, path: Path | str = DEFAULT_VIABILITY
     if name not in scenarios:
         raise ConfigError(f"viabilidade.toml não tem o cenário '{name}'; disponíveis: {sorted(scenarios)}")
     sc = scenarios[name]
-    _check_keys(f"[cenarios.{name}]", sc, {"base", "ppm_maximo", "linhas", "mapas"})
+    _check_keys(f"[cenarios.{name}]", sc, {"base", "ppm_maximo", "comprimento_min_mm", "comprimento_max_mm",
+                                           "linhas", "mapas"})
 
     base_raw = sc.get("base", {})
     _check_keys(f"[cenarios.{name}.base]", base_raw, set(PARAMS))
@@ -170,6 +174,8 @@ def load_plan(scenario_cfg: ScenarioConfig, path: Path | str = DEFAULT_VIABILITY
         min_bore_diameter_mm=scenario_cfg.constraints.min_bore_diameter * 1e3,
         max_mass_kg=scenario_cfg.constraints.max_magnet_mass,
         max_ppm=ppm_max if ppm_max > 0 else None,
+        min_length_mm=float(sc["comprimento_min_mm"]) if "comprimento_min_mm" in sc else None,
+        max_length_mm=float(sc["comprimento_max_mm"]) if "comprimento_max_mm" in sc else None,
     )
     return ViabilityPlan(scenario=name, general=general, base=base, criteria=criteria,
                          lines=tuple(lines), maps=tuple(maps))
@@ -182,10 +188,11 @@ def load_plan(scenario_cfg: ScenarioConfig, path: Path | str = DEFAULT_VIABILITY
 STATUS_LABELS: dict[int, str] = {
     0: "viável",
     1: "campo fora do alvo",
-    2: "homogeneidade acima do limite",
-    3: "massa acima do limite",
-    4: "bore abaixo do mínimo",
-    5: "geometria impossível",
+    2: "homogeneidade abaixo do mínimo",
+    3: "comprimento fora da faixa",
+    4: "massa acima do limite",
+    5: "bore abaixo do mínimo",
+    6: "geometria impossível",
 }
 """Código de viabilidade → texto. Quando falham vários critérios, vale o de maior código."""
 
@@ -193,11 +200,15 @@ STATUS_LABELS: dict[int, str] = {
 def viability_code(result: SimResult, criteria: Criteria) -> int:
     """Classifica um arranjo (ver :data:`STATUS_LABELS`)."""
     if result.status != "ok":
-        return 5
+        return 6
     p, m = result.params, result.metrics
     if 2 * p.bore_radius_mm < criteria.min_bore_diameter_mm - 1e-9:
-        return 4
+        return 5
     if m["mass_kg"] > criteria.max_mass_kg:
+        return 4
+    length = m["length_mm"]
+    if (criteria.min_length_mm is not None and length < criteria.min_length_mm - 1e-9) or \
+            (criteria.max_length_mm is not None and length > criteria.max_length_mm + 1e-9):
         return 3
     if criteria.max_ppm is not None and m["ppm"] > criteria.max_ppm:
         return 2
