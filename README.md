@@ -40,6 +40,22 @@ decisões de projeto) estão documentadas em [DOCS/correcoes.md](DOCS/correcoes.
 O campo B0 é transversal ao bore, na direção configurada em
 `field.direction_deg`. O padrão é −90°, ou seja, vertical, de cima para baixo (−y).
 
+## Análise de viabilidade (branch `analise-viabilidade`)
+
+Simulações variando os parâmetros do ímã (número de anéis, raio, camadas,
+tamanho do ímã, espaçamento, Br, DSV) para ver como o campo, a homogeneidade e
+a massa respondem. Gera um relatório com gráficos de linha, mapas de calor e
+explicações:
+
+```bash
+uv run halbach-ic viabilidade --scenario head
+```
+
+Guia completo em [DOCS/analise_viabilidade.md](DOCS/analise_viabilidade.md).
+Relatórios prontos:
+[cabeça](DOCS/resultados/viabilidade/head/relatorio.md) ·
+[membros](DOCS/resultados/viabilidade/limb/relatorio.md).
+
 ## Instalação
 
 Requer [uv](https://docs.astral.sh/uv/) (`brew install uv`). Ele cria um Python
@@ -137,6 +153,7 @@ src/halbach_ic/
   pipeline.py             liga as peças
   visualization.py        gráficos
   cad_export.py           exportação CAD (Fase 7)
+  viability/              análise de viabilidade (varreduras, gráficos, relatório)
   cli.py                  linha de comando
 tests/                    pytest
 scripts/                  análises avulsas
