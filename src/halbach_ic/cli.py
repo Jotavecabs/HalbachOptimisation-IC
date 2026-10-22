@@ -142,6 +142,26 @@ def _run(cfg: ScenarioConfig, outdir: Path, show: bool) -> None:
         plt.show()
 
 
+def _viability(cfg: ScenarioConfig, args: argparse.Namespace) -> None:
+    from halbach_ic.viability.report import write_report
+    from halbach_ic.viability.sweeps import DEFAULT_VIABILITY_PATH, load_plan, run_analysis
+
+    plan = load_plan(cfg, args.plano or DEFAULT_VIABILITY_PATH)
+    general = plan.general
+    if args.backend is not None:
+        general = dataclasses.replace(general, backend=args.backend)
+    if args.workers is not None:
+        general = dataclasses.replace(general, n_workers=args.workers)
+    plan = dataclasses.replace(plan, general=general)
+    outdir = args.out or Path("results") / f"viabilidade_{cfg.name}_{time.strftime('%Y%m%d_%H%M%S')}"
+    print(f"cenário {cfg.name}: {len(plan.lines)} gráficos de linha, {len(plan.maps)} mapas de calor")
+    data = run_analysis(plan)
+    print(f"simulação: {data.elapsed_s:.1f} s")
+    report = write_report(data, outdir)
+    print(f"\nrelatório: {report}")
+    print("abra o relatorio.md no VS Code (Ctrl+Shift+V / Cmd+Shift+V) para ver o texto com os gráficos")
+
+
 def main(argv: list[str] | None = None) -> None:
     """Ponto de entrada de ``halbach-ic``."""
     parser = argparse.ArgumentParser(prog="halbach-ic", description="Otimização de arranjos Halbach")
@@ -161,6 +181,13 @@ def main(argv: list[str] | None = None) -> None:
     run_cmd.add_argument("--workers", type=int, default=None, help="sobrescreve performance.n_workers")
     run_cmd.add_argument("--show", action="store_true", help="abre os gráficos ao final")
 
+    viab = sub.add_parser("viabilidade", help="análise de viabilidade: varreduras de parâmetros com relatório")
+    viab.add_argument("--scenario", required=True)
+    viab.add_argument("--plano", type=Path, default=None, help="arquivo de varreduras (padrão: viabilidade.toml)")
+    viab.add_argument("--out", type=Path, default=None, help="pasta de saída (padrão: results/viabilidade_<cenário>_<data>)")
+    viab.add_argument("--backend", choices=["dipole", "cuboid"], default=None, help="sobrescreve [geral] modelo")
+    viab.add_argument("--workers", type=int, default=None, help="sobrescreve [geral] processos")
+
     args = parser.parse_args(argv)
     if args.scenario not in available_scenarios(args.config):
         parser.error(f"cenário '{args.scenario}' não existe; disponíveis: {available_scenarios(args.config)}")
@@ -168,6 +195,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command == "info":
         _info(cfg)
+        return
+    if args.command == "viabilidade":
+        _viability(cfg, args)
         return
 
     overrides = {k: v for k, v in {"population": args.population, "generations": args.generations,
